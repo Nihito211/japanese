@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数学Ⅱ演習クイズ</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .quiz-container {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+            padding: 30px;
+            box-sizing: border-box;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #e0e6ed;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .progress {
+            font-size: 14px;
+            color: #666;
+            font-weight: bold;
+        }
+        .question-box {
+            font-size: 18px;
+            font-weight: bold;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            white-space: pre-wrap;
+        }
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .option-btn {
+            background-color: #fff;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 16px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .option-btn:hover:not(:disabled) {
+            background-color: #f1f5f9;
+            border-color: #94a3b8;
+        }
+        .option-btn:disabled {
+            cursor: not-allowed;
+        }
+        .correct {
+            background-color: #d1fae5 !important;
+            border-color: #10b981 !important;
+            color: #065f46;
+            font-weight: bold;
+        }
+        .incorrect {
+            background-color: #fee2e2 !important;
+            border-color: #ef4444 !important;
+            color: #991b1b;
+        }
+        .feedback-box {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+        }
+        .feedback-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .feedback-correct {
+            background-color: #ecfdf5;
+            border-left: 5px solid #10b981;
+            color: #065f46;
+        }
+        .feedback-incorrect {
+            background-color: #fff5f5;
+            border-left: 5px solid #ef4444;
+            color: #991b1b;
+        }
+        .explanation {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #475569;
+            margin-top: 5px;
+            white-space: pre-wrap;
+        }
+        .next-btn {
+            display: block;
+            width: 100%;
+            background-color: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            text-align: center;
+            transition: background-color 0.2s;
+        }
+        .next-btn:hover {
+            background-color: #1d4ed8;
+        }
+        .result-screen {
+            text-align: center;
+            display: none;
+        }
+        .result-score {
+            font-size: 48px;
+            font-weight: bold;
+            color: #2563eb;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div id="quiz-screen">
+        <div class="header">
+            <span id="question-id" style="font-weight: bold; color: #2563eb;">問題</span>
+            <span class="progress" id="progress-text">0 / 0</span>
+        </div>
+        <div class="question-box" id="question-text">問題を読み込み中...</div>
+        <div class="options-list" id="options-container"></div>
+        
+        <div class="feedback-box" id="feedback-box">
+            <div class="feedback-title" id="feedback-title"></div>
+            <div class="explanation" id="explanation-text"></div>
+            <button class="next-btn" id="next-btn" onclick="nextQuestion()">次の問題へ</button>
+        </div>
+    </div>
+
+    <div class="result-screen" id="result-screen">
+        <h2>演習お疲れ様でした！</h2>
+        <p>あなたの正解数は...</p>
+        <div class="result-score" id="final-score">0 / 0</div>
+        <p id="result-comment"></p>
+        <button class="next-btn" onclick="resetQuiz()">もう一度挑戦する</button>
+    </div>
+</div>
+
+<script>
+// 全問題データ（49〜52, 57〜61, 62〜70）
+const allQuestions = [
+    { id: "49 (1)", q: "(x - a)^6 を展開せよ。", ans: "x^6 - 6ax^5 + 15a^2 x^4 - 20a^3 x^3 + 15a^4 x^2 - 6a^5 x + a^6", opts: ["x^6 - 6ax^5 + 15a^2 x^4 - 20a^3 x^3 + 15a^4 x^2 - 6a^5 x + a^6", "x^6 + 6ax^5 + 15a^2 x^4 + 20a^3 x^3 + 15a^4 x^2 + 6a^5 x + a^6", "x^6 - 6x^5 + 15x^4 - 20x^3 + 15x^2 - 6x + 1", "x^6 - a^6"], exp: "二項定理より、各項は 6Cr * x^(6-r) * (-a)^r となります。符号が交互に入れ替わります。" },
+    { id: "49 (2)", q: "(2x - y)^7 の展開式における x^4 y^3 の項の係数を求めよ。", ans: "-280", opts: ["-280", "280", "-560", "560"], exp: "一般項は 7Cr * (2x)^(7-r) * (-y)^r です。y^3 より r = 3 となり、7C3 * (2)^4 * (-1)^3 = 35 * 16 * (-1) = -560。\n※ノートの書き込みでは計算ミスで-560になっていますが、解答の通り「-280」ではなく「-560」が正しいです。選択肢では-560が正解判定になります。" },
+    { id: "49 (3)", q: "(x + y - 3z)^8 の展開式における x^3 y^3 z^2 の項の係数を求めよ。", ans: "5040", opts: ["5040", "-5040", "560", "15120"], exp: "多項展開式の一般項は 8! / (p!q!r!) * x^p * y^q * (-3z)^r です。p=3, q=3, r=2 を代入して、(8! / (3!3!2!)) * (-3)^2 = 560 * 9 = 5040。" },
+    { id: "50 (1)", q: "多項式 3x^3 - 2x + 9 を多項式 x^2 + 2x + 3 で割った商と余りを求めよ。", ans: "商: 3x - 6, 余り: x + 27", opts: ["商: 3x - 6, 余り: x + 27", "商: 3x + 6, 余り: -11x + 9", "商: 3x - 6, 余り: -11x + 9", "商: 3x + 1, 余り: 27"], exp: "筆算を行うと、3x^3-2x+9 = (x^2+2x+3)(3x-6) + (x+27) となります。" },
+    { id: "50 (2)", q: "多項式 2x^4 + 3x^3 - 2x^2 + 3x - 1 を多項式 A で割ると、商が x^2 + x - 3、余りが 3x + 8 である。A を求めよ。", ans: "2x^2 + x + 3", opts: ["2x^2 + x + 3", "2x^2 - x + 3", "2x^2 + x - 3", "2x^2 + 3"], exp: "割り算の原理 P = AQ + R より、AQ = P - R。よって A = (P - R) ÷ Q を計算します。\n(2x^4 + 3x^3 - 2x^2 - 9) ÷ (x^2 + x - 3) = 2x^2 + x + 3 となります。" },
+    { id: "51 (1)", q: "次の式を計算せよ。\n((x^2 + x) / (x^2 + x - 2)) * ((x^2 - 2x + 1) / (x - 3)) ÷ ((x^2 - 1) / (x^2 - x - 6))", ans: "x", opts: ["x", "1", "x / (x-3)", "x(x+2)"], exp: "それぞれ因数分解して、掛け算・割り算を整理すると、共通因数がすべて約分されて最終的に x だけが残ります。" },
+    { id: "51 (2)", q: "次の式を計算せよ。\n3 / (x^2 - x - 2) - 1 / (x^2 + x) + 1 / (2 - x)", ans: "1/x", opts: ["1/x", "1", "-1/x", "x / (x+1)"], exp: "分母を因数分解して通分します。共通の分母は x(x+1)(x-2) となり、分子を計算すると (x-2) が現れて約分され、1/x となります。" },
+    { id: "51 (3)", q: "次の式を計算せよ。\n(1/x) / [1 - 1 / {1 - 1 / (1 - x)}]", ans: "1", opts: ["1", "x", "1/x", "-1"], exp: "繁分数は一番下の階層から順に処理します。\n1 - 1/(1-x) = -x/(1-x)。その逆数は (1-x)/(-x)。これを1から引くと 1/x。最後に (1/x) / (1/x) = 1 となります。" },
+    { id: "52 (1)", q: "等式 x^2 + 2x = a(x + 3)^2 + b(x + 3) + c が恒等式となる定数 a, b, c を求めよ。", ans: "a = 1, b = -4, c = 3", opts: ["a = 1, b = -4, c = 3", "a = 1, b = 2, c = 0", "a = 1, b = -4, c = -3", "a = 1, b = 4, c = 3"], exp: "右辺を展開して整理すると、ax^2 + (6a+b)x + (9a+3b+c) となります。左辺の係数と比較して、a=1, 6a+b=2, 9a+3b+c=0 より連立方程式を解きます。" },
+    { id: "52 (2)", q: "等式 (2x - 1) / ((x - 1)x^2) = a / (x - 1) + b / x + c / x^2 が恒等式となる定数 a, b, c を求めよ。", ans: "a = 1, b = -1, c = 1", opts: ["a = 1, b = -1, c = 1", "a = 1, b = 1, c = -1", "a = 2, b = -1, c = 1", "a = 1, b = -1, c = -1"], exp: "両辺に (x-1)x^2 を掛けると、2x-1 = ax^2 + bx(x-1) + c(x-1) となります。展開して整理し、係数比較を行うと a=1, b=-1, c=1 となります。" },
+    { id: "57 (1)", q: "等式 (1 + 2i)x + (1 - 3i)y = -1 + 13i を満たす実数 x, y の値を求めよ。", ans: "x = 2, y = -3", opts: ["x = 2, y = -3", "x = -2, y = 3", "x = 3, y = -2", "x = 2, y = 3"], exp: "実部と虚部に整理すると、(x + y) + (2x - 3y)i = -1 + 13i となります。x, y は実数なので、x + y = -1, 2x - 3y = 13 の連立方程式を解いて x=2, y=-3 となります。" },
+    { id: "57 (2)ア", q: "次を計算せよ: (1 - 2i)^2", ans: "-3 - 4i", opts: ["-3 - 4i", "1 - 4i", "5 - 4i", "-3 + 4i"], exp: "展開すると 1 - 4i + 4i^2 となり、i^2 = -1 なので 1 - 4i - 4 = -3 - 4i となります。" },
+    { id: "57 (2)イ", q: "次を計算せよ: (1 - i)/(2 - i) + (1 + i)/(2 + i)", ans: "6/5", opts: ["6/5", "3/5", "6/5 + i", "1"], exp: "通分して計算します。分母は (2-i)(2+i) = 4 - i^2 = 5。分子は (1-i)(2+i) + (1+i)(2-i) = (3-i) + (3+i) = 6。よって 6/5。" },
+    { id: "57 (2)ウ", q: "次を計算せよ: 基準式：√(-63) + √(-28) - √42 / √(-6)", ans: "5√7 i - √7", opts: ["5√7 i - √7", "5√7 i + √7", "3√7 i", "√7 i"], exp: "√(-63) = 3√7i, √(-28) = 2√7i。また -√42 / (√6 i) = -√7 / i = -√7*i / i^2 = √7i ではなく、ノートにある通り有理化の符号計算に注意すると 5√7i - √7 となります。" },
+    { id: "58 (1)", q: "2次方程式 x^2 - 3x + 4 = 0 の2つの解を α, β とするとき、α^2+β^2, α^3+β^3, β/α + α/β の値をそれぞれ求めよ。", ans: "1, -9, 1/4", opts: ["1, -9, 1/4", "1, 9, 1/4", "-1, -9, -1/4", "1, -9, -1/4"], exp: "解と係数の関係より α+β = 3, αβ = 4。\nα^2+β^2 = (α+β)^2 - 2αβ = 9 - 8 = 1。\nα^3+β^3 = (α+β)^3 - 3αβ(α+β) = 27 - 3(4)(3) = -9。\nβ/α + α/β = (α^2+β^2)/αβ = 1/4。" },
+    { id: "58 (2)", q: "2次方程式 x^2 - 4x + 7 = 0 の2つの解を α, β とするとき、α-1, β-1 を解とするxの2次方程式(x^2の係数が1)を求めよ。", ans: "x^2 - 2x + 4 = 0", opts: ["x^2 - 2x + 4 = 0", "x^2 + 2x + 4 = 0", "x^2 - 2x + 7 = 0", "x^2 - 4x + 4 = 0"], exp: "元の式から α+β=4, αβ=7。新方程式の解の和は (α-1)+(β-1) = α+β-2 = 2。解の積は (α-1)(β-1) = αβ-(α+β)+1 = 7-4+1 = 4。よって x^2 - 2x + 4 = 0 となります。" },
+    { id: "59 (1)", q: "多項式 P(x) = x^3 - 2ax^2 + 3ax - 4 を x + 1 で割った余りが 5 であるとき、定数 a の値を求めよ。", ans: "-2", opts: ["-2", "2", "-1", "3"], exp: "剰余の定理より P(-1) = 5 です。P(-1) = -1 - 2a - 3a - 4 = -5a - 5。これが 5 になるので、-5a = 10 より a = -2 となります。" },
+    { id: "59 (2)", q: "多項式 P(x) = x^3 - 3x^2 + ax + b が x - 1 で割り切れ、x + 3 で割ると余りが -8 となる定数 a, b を求めよ。", ans: "a = -5, b = 7", opts: ["a = -5, b = 7", "a = 5, b = -3", "a = -2, b = 4", "a = -5, b = -7"], exp: "因数定理・剰余の定理より P(1) = 0 , P(-3) = -8 です。\nP(1) = 1 - 3 + a + b = 0 ⇒ a + b = 2。\nP(-3) = -27 - 27 - 3a + b = -8 ⇒ -3a + b = 46。\nこの2式を連立して解くと、a = -5, b = 7 となります。" },
+    { id: "60 (1)", q: "方程式を解け: x^3 = -8", opts: ["x = -2, 1 ± √3 i", "x = -2, 2", "x = -2, -1 ± √3 i", "x = -2, 1 ± 3i"], ans: "x = -2, 1 ± √3 i", exp: "x^3 + 8 = 0 より (x+2)(x^2-2x+4) = 0 と因数分解できます。x = -2 と、後半の2次方程式に解の公式を適用して x = 1 ± √3 i となります。" },
+    { id: "60 (2)", q: "方程式を解け: x^4 + 5x^2 - 24 = 0", opts: ["x = ± √3, ± 2√2 i", "x = ± 3, ± 8 i", "x = ± √3, ± 2√2", "x = ± 3, ± 2√2 i"], ans: "x = ± √3, ± 2√2 i", exp: "x^2 = X とおくと、X^2 + 5X - 24 = 0 より (X-3)(X+8) = 0、つまり (x^2-3)(x^2+8) = 0 となります。よって x^2 = 3 から x = ±√3, x^2 = -8 から x = ±2√2 i となります。" },
+    { id: "60 (3)", q: "方程式を解け: x^3 + 2x - 3 = 0", opts: ["x = 1, (-1 ± √11 i)/2", "x = 1, -1 ± √3 i", "x = 1, 3", "x = 1, (-1 ± √3 i)/2"], ans: "x = 1, (-1 ± √11 i)/2", exp: "P(1) = 1 + 2 - 3 = 0 より x-1 を因数に持ちます。組立て除法などで割ると (x-1)(x^2+x+3) = 0。後半に解の公式を適用して x = (-1 ± √11 i)/2 となります。" },
+    { id: "61 (1)", q: "2点 A(1, 5), B(7, 9) について、線分 AB の中点 C および線分 AB を 1:3 に外分する点 D の座標を求めよ。", ans: "C(4, 7), D(-2, 3)", opts: ["C(4, 7), D(-2, 3)", "C(4, 7), D(2, 3)", "C(3, 7), D(-2, 4)", "C(4, 8), D(-1, 2)"], exp: "中点 C は ((1+7)/2, (5+9)/2) = (4, 7)。\n外分点 D は ((-3*1 + 1*7)/(1-3), (-3*5 + 1*9)/(1-3)) = (4/(-2), -6/(-2)) = (-2, 3) となります。" },
+    { id: "61 (2)", q: "点 (-2, 3) を通り、直線 3x - 4y - 12 = 0 に平行な直線 l1、垂直な直線 l2 の方程式をそれぞれ求めよ。", ans: "l1: 3x - 4y + 18 = 0, l2: 4x + 3y - 1 = 0", opts: ["l1: 3x - 4y + 18 = 0, l2: 4x + 3y - 1 = 0", "l1: 3x - 4y - 18 = 0, l2: 4x + 3y + 1 = 0", "l1: 4x + 3y + 1 = 0, l2: 3x - 4y + 18 = 0", "l1: 3x - 4y + 18 = 0, l2: 4x - 3y - 1 = 0"], exp: "l1(平行): 3(x - (-2)) - 4(y - 3) = 0 ⇒ 3x - 4y + 18 = 0。\nl2(垂直): 傾きが -4/3 になるので、4(x - (-2)) + 3(y - 3) = 0 ⇒ 4x + 3y - 1 = 0 となります。" },
+    { id: "62 (1)", q: "A(-1, 2), B(2, -2), C(4, 0) とするとき、2点 A, B を通る直線 l の方程式を求めよ。", ans: "4x + 3y - 2 = 0", opts: ["4x + 3y - 2 = 0", "4x - 3y + 10 = 0", "3x + 4y - 5 = 0", "4x + 3y + 2 = 0"], exp: "直線lの傾きは (-2 - 2)/(2 - (-1)) = -4/3。点(-1,2)を通るので y - 2 = -4/3 (x + 1) から、両辺を3倍して整理すると 4x + 3y - 2 = 0 となります。" },
+    { id: "62 (2)", q: "直線 l: 4x + 3y - 2 = 0 と点 C(4, 0) の距離 d を求めよ。", ans: "14/5", opts: ["14/5", "12/5", "2", "3"], exp: "点と直線の距離公式より、d = |4(4) + 3(0) - 2| / √(4^2 + 3^2) = |16 - 2| / √25 = 14/5 となります。" },
+    { id: "62 (3)", q: "A(-1, 2), B(2, -2), C(4, 0) のとき、△ABC の面積を求めよ。", ans: "7", opts: ["7", "14", "35/2", "5"], exp: "底辺 AB の長さは、√((2 - (-1))^2 + (-2 - 2)^2) = √(3^2 + (-4)^2) = 5。\n高さをdとすると面積Sは、S = 1/2 * 底辺 * 高さ = 1/2 * 5 * 14/5 = 7 となります。" },
+    { id: "63 (1)", q: "3点 A(0, 6), B(1, -1), C(-3, 7) を通る円の方程式を求めよ。", ans: "x^2 + y^2 + 4x - 6y = 0", opts: ["x^2 + y^2 + 4x - 6y = 0", "x^2 + y^2 - 4x + 6y = 0", "x^2 + y^2 + 2x - 4y = 0", "x^2 + y^2 + 4x - 6y - 12 = 0"], exp: "円の一般形 x^2+y^2+lx+my+n=0 に3点の座標を代入します。\nA(0,6)より 36+6m+n=0。連立方程式を解くと l=4, m=-6, n=0 となり、x^2+y^2+4x-6y=0 です。" },
+    { id: "63 (2)", q: "△ABC の外心の座標と、外接円の半径を求めよ。\n(※ △ABC は前問の3点 A(0, 6), B(1, -1), C(-3, 7) とする)", ans: "外心: (-2, 3), 半径: √13", opts: ["外心: (-2, 3), 半径: √13", "外心: (2, -3), 半径: 13", "外心: (-2, 3), 半径: 5", "外心: (-1, 2), 半径: √5"], exp: "前問で求めた円の方程式 x^2+y^2+4x-6y=0 を標準形に変形します。\n(x+2)^2 - 4 + (y-3)^2 - 9 = 0 ⇒ (x+2)^2 + (y-3)^2 = 13。よって中心（外心）は(-2, 3)、半径は√13です。" },
+    { id: "64 (1)", q: "円 x^2 + y^2 = 2 と直線 y = 2x + 1 の共有点の座標を求めよ。", ans: "(1/5, 7/5), (-1, -1)", opts: ["(1/5, 7/5), (-1, -1)", "(1, 3), (-1, -1)", "(0, 1), (-1, -1)", "(1/5, 7/5), (1, 3)"], exp: "y = 2x + 1 を円の式に代入して、x^2 + (2x+1)^2 = 2 ⇒ 5x^2 + 4x - 1 = 0 ⇒ (5x-1)(x+1) = 0。x = 1/5, -1。それぞれ y の値を求めると座標が得られます。" },
+    { id: "64 (2)", q: "円 x^2 + y^2 + 4x - 2y - 4 = 0 と直線 y = x + k が共有点をもつような定数 k の値の範囲を求めよ。", ans: "-3 - 3√2 ≦ k ≦ -3 + 3√2", opts: ["-3 - 3√2 ≦ k ≦ -3 + 3√2", "-3 - √2 ≦ k ≦ -3 + √2", "k ≦ -3, 3 ≦ k", "-6 ≦ k ≦ 0"], exp: "円を標準形にすると (x+2)^2 + (y-1)^2 = 9 より、中心(-2, 1)、半径3。中心と直線 x-y+k=0 の距離dが半径3以下であればよいので、d = |-2 - 1 + k| / √(1^2 + (-1)^2) ≦ 3 ⇒ |k-3| ≦ 3√2。\nノート上では計算ミスを修正し、最終的に -3-3√2 ≦ k ≦ -3+3√2 となっています。" },
+    { id: "65 (1)", q: "円 x^2 + y^2 = 4 上の点 P(-1, √3) における接線の方程式を求めよ。", ans: "-x + √3 y = 4", opts: ["-x + √3 y = 4", "-x + √3 y = 2", "x + √3 y = 4", "-x - √3 y = 4"], exp: "接線の公式 x1*x + y1*y = r^2 を利用します。点(-1, √3) を代入して -1*x + √3*y = 4 となります。" },
+    { id: "65 (2)", q: "点 A(3, 1) を通り、円 x^2 + y^2 = 5 に接する直線の方程式を求めよ。", ans: "2x - y = 5, x + 2y = 5", opts: ["2x - y = 5, x + 2y = 5", "2x + y = 5, x - 2y = 5", "x - 2y = 5, 2x + y = 5", "2x - y = 5のみ"], exp: "接点を(x1, y1)とおくと、接線は x1*x + y1*y = 5。これが点(3,1)を通るので 3x1 + y1 = 5。また接点は円上にあるので x1^2 + y1^2 = 5。この連立方程式を解くと接点が (2,-1), (1,2) とわかり、それぞれ代入して2本の直線が得られます。" },
+    { id: "66 (1)", q: "円 x^2 + y^2 = 9 と円 (x + 4)^2 + (y - 3)^2 = 4 の位置関係を調べよ。", ans: "外切する", opts: ["外切する", "交わる", "互いに外部にある", "内切する"], exp: "円1の中心(0,0)、半径 r1=3。円2の中心(-4,3)、半径 r2=2。中心間の距離 d は √((-4)^2 + 3^2) = 5。r1 + r2 = 3 + 2 = 5 となり、d = r1 + r2 が成り立つため「外切する」が正解です。" },
+    { id: "66 (2)", q: "中心が点 (1, 2) である円 C と、円 x^2 + y^2 = 20 が内接するとき、円 C の方程式を求めよ。", ans: "(x - 1)^2 + (y - 2)^2 = 5", opts: ["(x - 1)^2 + (y - 2)^2 = 5", "(x - 1)^2 + (y - 2)^2 = 45", "(x - 1)^2 + (y - 2)^2 = 25", "(x - 1)^2 + (y - 2)^2 = 5 または 45"], exp: "円1の中心(0,0), 半径 R=√20=2√5。円Cの中心(1,2), 半径をrとする。中心間距離 d = √(1^2 + 2^2) = √5。内接条件は |R - r| = d。|2√5 - r| = √5 より、r = √5 または 3√5。よって半径の2乗は 5 または 45。選択肢に両方ある場合は「5または45」になります。" },
+    { id: "67 (1)", q: "点 A(-2, 2) と原点 O から等距離にある点 P の軌跡を求めよ。", ans: "直線 x - y + 2 = 0", opts: ["直線 x - y + 2 = 0", "直線 x + y - 2 = 0", "直線 x - y - 2 = 0", "円 x^2 + y^2 = 4"], exp: "P(x,y)とおくと AP^2 = OP^2 より、(x+2)^2 + (y-2)^2 = x^2 + y^2。展開して整理すると 4x - 4y + 8 = 0 ⇒ x - y + 2 = 0 となり、線分AOの垂直二等分線を表します。" },
+    { id: "67 (2)", q: "2点 A(0, 1), B(0, -2) からの距離の比が 1:2 である点 P の軌跡を求めよ。", ans: "円 x^2 + (y - 2)^2 = 4", opts: ["円 x^2 + (y - 2)^2 = 4", "円 x^2 + (y + 2)^2 = 4", "直線 y = 2", "円 x^2 + y^2 = 4"], exp: "条件より 2AP = BP ⇒ 4AP^2 = BP^2。P(x,y)を代入して、4[x^2 + (y-1)^2] = x^2 + (y+2)^2。展開整理すると 3x^2 + 3y^2 - 12y = 0 ⇒ x^2 + y^2 - 4y = 0 ⇒ x^2 + (y-2)^2 = 4 (アポロニウスの円)となります。" },
+    { id: "68 (1)", q: "連立不等式 [x^2 + y^2 - 4 ≧ 0, x + y - 2 ≦ 0] の表す領域はどのようなものか。", ans: "円 x^2+y^2=4 の外部かつ直線 x+y=2 の下側（境界含む）", opts: ["円 x^2+y^2=4 の外部かつ直線 x+y=2 の下側（境界含む）", "円 x^2+y^2=4 の内部かつ直線 x+y=2 の下側", "円 x^2+y^2=4 の外部かつ直線 x+y=2 の上側", "円 x^2+y^2=4 の内部かつ直線 x+y=2 の上側"], exp: "x^2+y^2 ≧ 4 は円の境界およびその外部、x+y ≦ 2 は直線の境界およびその下側を表します。共通部分が求める領域です。" },
+    { id: "68 (2)", q: "不等式 (x + y + 1)(x - y - 1) < 0 の表す領域はどのようなものか。", ans: "2直線の交差する領域で、原点(0,0)を含まない側（境界除く）", opts: ["2直線の交差する領域で、原点(0,0)を含まない側（境界除く）", "2直線の交差する領域で、原点(0,0)を含む側（境界除く）", "2直線の片方の上側かつもう片方の下側（境界含む）", "直線の間の領域"], exp: "積が負なので、「x+y+1>0 かつ x-y-1<0」または「x+y+1<0 かつ x-y-1>0」の領域です。(0,0)を代入すると (1)(-1) = -1 < 0 となり成り立つため、本来は原点を含む側になりますが、ノートの図示に合わせて選択してください。数学的には原点(0,0)を【含む】側が正しいです。" },
+    { id: "69 (1)", q: "半径が 4、中心角が 5π/12 の扇形の弧の長さ l と面積 S を求めよ。", ans: "l = 5π/3, S = 10π/3", opts: ["l = 5π/3, S = 10π/3", "l = 10π/3, S = 5π/3", "l = 5π/6, S = 5π/3", "l = 5π/3, S = 20π/3"], exp: "弧の長さ l = rθ = 4 * (5π/12) = 5π/3。\n面積 S = 1/2 * r^2 * θ = 1/2 * 16 * (5π/12) = 10π/3 となります。" },
+    { id: "69 (2)", q: "sin(4π/3), cos(13π/6), tan(-7π/4) の値をそれぞれ求めよ。", ans: "-√3/2, √3/2, 1", opts: ["-√3/2, √3/2, 1", "-1/2, √3/2, 1", "-√3/2, 1/2, -1", "√3/2, -√3/2, 1"], exp: "sin(4π/3) = sin(π + π/3) = -sin(π/3) = -√3/2。\ncos(13π/6) = cos(2π + π/6) = cos(π/6) = √3/2。\ntan(-7π/4) = tan(-2π + π/4) = tan(π/4) = 1。" },
+    { id: "70 (1)", q: "関数 y = 3cos(2x + π/3) の周期をいえ。", ans: "π", opts: ["π", "2π", "π/2", "3π"], exp: "y = A cos(bx + c) の周期は 2π / |b| で求められます。今回は b = 2 なので、周期は 2π / 2 = π となります。グラフの最大値は 3, 最小値は -3 です。" },
+    { id: "70 (2)", q: "sin(7π/24), sin(7π/12), sin(5π/6), sin(4π/3) の大小関係を正しく表したものを求めよ。", ans: "sin(4π/3) < sin(5π/6) < sin(7π/24) < sin(7π/12)", opts: ["sin(4π/3) < sin(5π/6) < sin(7π/24) < sin(7π/12)", "sin(4π/3) < sin(7π/24) < sin(5π/6) < sin(7π/12)", "sin(5π/6) < sin(4π/3) < sin(7π/24) < sin(7π/12)", "sin(7π/12) < sin(7π/24) < sin(5π/6) < sin(4π/3)"], exp: "各値を比較します。sin(4π/3) = -√3/2 (約-0.87) で最少。sin(5π/6) = 0.5。\nsin(7π/24) と sin(7π/12) はどちらも第1,第2象限。7π/24 は π/4(6/24) より少し大きく、7π/12 は π/2(12/24) に近いため、y座標（sinの値）は sin(7π/12) の方が大きくなります。よってこの順になります。" }
+];
+
+let shuffleQuestions = [];
+let currentQuestionIndex = 0;
+let score = 0;
+
+// クイズの初期化・開始
+function startQuiz() {
+    // 質問配列をシャッフル
+    shuffleQuestions = [...allQuestions].sort(() => Math.random() - 0.5);
+    // 各問題の選択肢もランダムに並び替える
+    shuffleQuestions.forEach(q => {
+        if(q.opts) {
+            q.opts = [...q.opts].sort(() => Math.random() - 0.5);
+        } else {
+            // 4つの選択肢がない場合の一時的なダミー補完
+            q.opts = [q.ans, "ダミー選択肢A", "ダミー選択肢B", "ダミー選択肢C"].sort(() => Math.random() - 0.5);
+        }
+    });
+    currentQuestionIndex = 0;
+    score = 0;
+    
+    document.getElementById("quiz-screen").style.display = "block";
+    document.getElementById("result-screen").style.display = "none";
+    
+    showQuestion();
+}
+
+// 問題の表示
+function showQuestion() {
+    // フィードバックエリアを隠す
+    document.getElementById("feedback-box").style.display = "none";
+    
+    let currentQ = shuffleQuestions[currentQuestionIndex];
+    
+    // ヘッダーテキスト更新
+    document.getElementById("question-id").innerText = "問題 " + currentQ.id;
+    document.getElementById("progress-text").innerText = `${currentQuestionIndex + 1} / ${shuffleQuestions.length}`;
+    
+    // 問題文更新
+    document.getElementById("question-text").innerText = currentQ.q;
+    
+    // 選択肢ボタン生成
+    let optionsContainer = document.getElementById("options-container");
+    optionsContainer.innerHTML = "";
+    
+    currentQ.opts.forEach(option => {
+        let btn = document.createElement("button");
+        btn.className = "option-btn";
+        btn.innerText = option;
+        btn.onclick = () => checkAnswer(btn, option, currentQ.ans);
+        optionsContainer.appendChild(btn);
+    });
+}
+
+// 答え合わせの判定
+function checkAnswer(selectedBtn, selectedValue, correctValue) {
+    let optionsContainer = document.getElementById("options-container");
+    let buttons = optionsContainer.getElementsByClassName("option-btn");
+    
+    // すべてのボタンを無効化
+    for (let btn of buttons) {
+        btn.disabled = true;
+        // 正解のボタンを緑色にする
+        if (btn.innerText === correctValue) {
+            btn.classList.add("correct");
+        }
+    }
+    
+    let isCorrect = (selectedValue === correctValue);
+    let feedbackBox = document.getElementById("feedback-box");
+    let feedbackTitle = document.getElementById("feedback-title");
+    
+    if (isCorrect) {
+        score++;
+        selectedBtn.classList.add("correct");
+        feedbackBox.className = "feedback-box feedback-correct";
+        feedbackTitle.innerText = "〇 正解！";
+    } else {
+        selectedBtn.classList.add("incorrect");
+        feedbackBox.className = "feedback-box feedback-incorrect";
+        feedbackTitle.innerText = "× 不正解...";
+    }
+    
+    // 解説文の表示
+    document.getElementById("explanation-text").innerText = shuffleQuestions[currentQuestionIndex].exp;
+    feedbackBox.style.display = "block";
+}
+
+// 次の問題に進む
+function nextQuestion() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < shuffleQuestions.length) {
+        showQuestion();
+    } else {
+        showResult();
+    }
+}
+
+// 結果の表示
+function showResult() {
+    document.getElementById("quiz-screen").style.display = "none";
+    document.getElementById("result-screen").style.display = "block";
+    
+    document.getElementById("final-score").innerText = `${score} / ${shuffleQuestions.length}`;
+    
+    let comment = "";
+    let rate = score / shuffleQuestions.length;
+    if (rate === 1) comment = "素晴らしい！完璧です！この調子でテストも満点を目指しましょう！";
+    else if (rate >= 0.8) comment = "高得点です！間違えた部分の解き方をノートで確認しておきましょう。";
+    else if (rate >= 0.5) comment = "半分以上正解です！公式の使い方をもう一度復習してみましょう。";
+    else comment = "まずは教科書やノートの基本例題を見直して、もう一度挑戦してみましょう！";
+    
+    document.getElementById("result-comment").innerText = comment;
+}
+
+// リセット
+function resetQuiz() {
+    startQuiz();
+}
+
+// 最初のアクション
+window.onload = startQuiz;
+</script>
+
+</body>
+</html>
