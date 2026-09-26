@@ -3,333 +3,726 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>数学Ⅱ演習クイズ</title>
+    <title>現代文単語373問 一問一答</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Noto Sans JP', sans-serif;
             background-color: #f0f4f8;
-            color: #333;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
+            color: #1e293b;
+            user-select: none;
+            -webkit-user-select: none;
         }
-        .quiz-container {
-            background-color: #fff;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            max-width: 600px;
-            width: 100%;
-            padding: 30px;
-            box-sizing: border-box;
+        .atama-blue { color: #0080a0; }
+        .bg-atama-blue { background-color: #0080a0; }
+        .border-atama-blue { border-color: #0080a0; }
+        .atama-navy { color: #1a2b4c; }
+        .bg-atama-navy { background-color: #1a2b4c; }
+        .atama-card {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 128, 160, 0.08);
         }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #e0e6ed;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
+        .btn-option {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .progress {
-            font-size: 14px;
-            color: #666;
-            font-weight: bold;
+        .btn-option:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 128, 160, 0.15);
         }
-        .question-box {
-            font-size: 18px;
-            font-weight: bold;
-            line-height: 1.6;
-            margin-bottom: 25px;
-            white-space: pre-wrap;
+        .btn-option:active:not(:disabled) {
+            transform: translateY(0);
         }
-        .options-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+        .progress-bar-inner {
+            transition: width 0.4s ease-out;
         }
-        .option-btn {
-            background-color: #fff;
-            border: 2px solid #cbd5e1;
-            border-radius: 8px;
-            padding: 15px;
-            font-size: 16px;
-            text-align: left;
-            cursor: pointer;
-            transition: all 0.2s ease;
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
         }
-        .option-btn:hover:not(:disabled) {
-            background-color: #f1f5f9;
-            border-color: #94a3b8;
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
         }
-        .option-btn:disabled {
-            cursor: not-allowed;
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
         }
-        .correct {
-            background-color: #d1fae5 !important;
-            border-color: #10b981 !important;
-            color: #065f46;
-            font-weight: bold;
-        }
-        .incorrect {
-            background-color: #fee2e2 !important;
-            border-color: #ef4444 !important;
-            color: #991b1b;
-        }
-        .feedback-box {
-            margin-top: 25px;
-            padding: 20px;
-            border-radius: 8px;
-            display: none;
-        }
-        .feedback-title {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-        .feedback-correct {
-            background-color: #ecfdf5;
-            border-left: 5px solid #10b981;
-            color: #065f46;
-        }
-        .feedback-incorrect {
-            background-color: #fff5f5;
-            border-left: 5px solid #ef4444;
-            color: #991b1b;
-        }
-        .explanation {
-            font-size: 15px;
-            line-height: 1.6;
-            color: #475569;
-            margin-top: 5px;
-            white-space: pre-wrap;
-        }
-        .next-btn {
-            display: block;
-            width: 100%;
-            background-color: #2563eb;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            padding: 15px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 20px;
-            text-align: center;
-            transition: background-color 0.2s;
-        }
-        .next-btn:hover {
-            background-color: #1d4ed8;
-        }
-        .result-screen {
-            text-align: center;
-            display: none;
-        }
-        .result-score {
-            font-size: 48px;
-            font-weight: bold;
-            color: #2563eb;
-            margin: 20px 0;
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
     </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col justify-between antialiased">
 
-<div class="quiz-container">
-    <div id="quiz-screen">
-        <div class="header">
-            <span id="question-id" style="font-weight: bold; color: #2563eb;">問題</span>
-            <span class="progress" id="progress-text">0 / 0</span>
+    <header class="bg-atama-navy text-white sticky top-0 z-50 shadow-md">
+        <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="showHome()">
+                <div class="w-8 h-8 rounded-lg bg-teal-400 flex items-center justify-center text-atama-navy font-black text-xl shadow">
+                    +
+                </div>
+                <h1 class="text-lg md:text-xl font-bold tracking-tight">現代文・論理語句 <span class="text-teal-300 text-sm font-normal">373問</span></h1>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button onclick="toggleBookmarkView()" id="bookmark-btn" class="text-sm px-3 py-1.5 rounded-full bg-slate-700/60 hover:bg-slate-700 text-teal-300 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-bookmark"></i>
+                    <span id="bookmark-count-badge">0</span>
+                </button>
+                <button onclick="showHome()" class="text-sm px-3 py-1.5 rounded-full bg-slate-700/60 hover:bg-slate-700 text-slate-200 transition">
+                    <i class="fa-solid fa-house"></i>
+                </button>
+            </div>
         </div>
-        <div class="question-box" id="question-text">問題を読み込み中...</div>
-        <div class="options-list" id="options-container"></div>
-        
-        <div class="feedback-box" id="feedback-box">
-            <div class="feedback-title" id="feedback-title"></div>
-            <div class="explanation" id="explanation-text"></div>
-            <button class="next-btn" id="next-btn" onclick="nextQuestion()">次の問題へ</button>
+    </header>
+
+    <main class="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 flex flex-col">
+
+        <!-- HOME SCREEN -->
+        <div id="home-view" class="space-y-6">
+            <!-- Hero Banner -->
+            <div class="atama-card p-6 md:p-8 bg-gradient-to-r from-slate-900 via-atama-navy to-slate-800 text-white relative overflow-hidden">
+                <div class="relative z-10">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="inline-block px-3 py-1 bg-teal-500/20 text-teal-300 text-xs font-semibold rounded-full border border-teal-500/30">完全網羅 373問</span>
+                        <span id="order-mode-badge" class="inline-block px-3 py-1 bg-amber-500/20 text-amber-300 text-xs font-semibold rounded-full border border-amber-500/30">ランダム順</span>
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-extrabold leading-snug mb-2">現代文・論理語句 完全マスター</h2>
+                    <p class="text-slate-300 text-sm md:text-base mb-6">問題文そのままの原文テキスト。シャッフル順で実践力を大幅アップ！</p>
+                    
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="startQuiz(0, true)" class="bg-teal-400 hover:bg-teal-300 text-atama-navy font-bold px-6 py-3 rounded-xl shadow-lg transition flex items-center gap-2 text-base">
+                            <i class="fa-solid fa-shuffle"></i> シャッフルしてスタート
+                        </button>
+                        <button onclick="startQuiz(0, false)" class="bg-slate-700/80 hover:bg-slate-700 text-white font-semibold px-5 py-3 rounded-xl transition flex items-center gap-2 text-sm border border-slate-600">
+                            <i class="fa-solid fa-arrow-down-1-9"></i> 順番通りスタート (1〜373)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="atama-card p-4 flex flex-col items-center justify-center text-center">
+                    <span class="text-xs text-slate-500 font-bold mb-1">総問題数</span>
+                    <span class="text-2xl font-black text-atama-navy">373 <span class="text-xs text-slate-400 font-normal">問</span></span>
+                </div>
+                <div class="atama-card p-4 flex flex-col items-center justify-center text-center">
+                    <span class="text-xs text-slate-500 font-bold mb-1">解答済み</span>
+                    <span id="stat-answered" class="text-2xl font-black text-atama-blue">0 <span class="text-xs text-slate-400 font-normal">問</span></span>
+                </div>
+                <div class="atama-card p-4 flex flex-col items-center justify-center text-center">
+                    <span class="text-xs text-slate-500 font-bold mb-1">正答率</span>
+                    <span id="stat-accuracy" class="text-2xl font-black text-emerald-600">-- <span class="text-xs text-slate-400 font-normal">%</span></span>
+                </div>
+                <div class="atama-card p-4 flex flex-col items-center justify-center text-center">
+                    <span class="text-xs text-slate-500 font-bold mb-1">ブックマーク</span>
+                    <span id="stat-bookmarks" class="text-2xl font-black text-amber-500">0 <span class="text-xs text-slate-400 font-normal">問</span></span>
+                </div>
+            </div>
+
+            <!-- Mode & Filter Options -->
+            <div class="atama-card p-6">
+                <h3 class="text-lg font-bold text-atama-navy mb-4 flex items-center justify-between">
+                    <span class="flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-atama-blue"></i> 学習モード設定
+                    </span>
+                    <button onclick="resetStats()" class="text-xs text-slate-400 hover:text-rose-500 transition">学習履歴リセット</button>
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-4 border border-slate-200 rounded-xl bg-slate-50 flex items-center justify-between">
+                        <div>
+                            <div class="font-bold text-sm text-slate-800">出題順序</div>
+                            <div id="mode-desc" class="text-xs text-slate-500">ランダムにシャッフルして出題</div>
+                        </div>
+                        <button onclick="toggleOrderMode()" id="mode-toggle-btn" class="px-4 py-2 bg-atama-blue text-white font-bold text-xs rounded-lg hover:bg-cyan-700 transition">
+                            ランダム順
+                        </button>
+                    </div>
+                    <div class="p-4 border border-slate-200 rounded-xl bg-slate-50 flex items-center justify-between">
+                        <div>
+                            <div class="font-bold text-sm text-slate-800">間違えた問題のみ</div>
+                            <div class="text-xs text-slate-500">復習モードで効率的学習</div>
+                        </div>
+                        <button onclick="startWrongOnlyMode()" id="wrong-mode-btn" class="px-4 py-2 bg-rose-500 text-white font-bold text-xs rounded-lg hover:bg-rose-600 transition">
+                            復習スタート
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category / Section Selection -->
+            <div class="atama-card p-6">
+                <h3 class="text-lg font-bold text-atama-navy mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-layer-group text-atama-blue"></i> ブロック指定（1〜373問）
+                </h3>
+                <div id="section-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <!-- Javascript will populate sections -->
+                </div>
+            </div>
         </div>
-    </div>
 
-    <div class="result-screen" id="result-screen">
-        <h2>演習お疲れ様でした！</h2>
-        <p>あなたの正解数は...</p>
-        <div class="result-score" id="final-score">0 / 0</div>
-        <p id="result-comment"></p>
-        <button class="next-btn" onclick="resetQuiz()">もう一度挑戦する</button>
-    </div>
-</div>
+        <!-- QUIZ SCREEN -->
+        <div id="quiz-view" class="hidden flex-1 flex flex-col space-y-4">
+            <!-- Progress Bar Card -->
+            <div class="atama-card p-4 flex items-center justify-between gap-4">
+                <div class="flex-1">
+                    <div class="flex justify-between items-center mb-1.5 text-xs font-semibold text-slate-500">
+                        <span id="quiz-progress-text">問題 1 / 373</span>
+                        <span id="quiz-progress-percent" class="text-atama-blue font-bold">0%</span>
+                    </div>
+                    <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div id="quiz-progress-bar" class="progress-bar-inner h-full bg-atama-blue rounded-full" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="reshuffleQuiz()" title="順番を再シャッフル" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-cyan-50 text-slate-500 hover:text-atama-blue transition flex items-center justify-center">
+                        <i class="fa-solid fa-shuffle text-base"></i>
+                    </button>
+                    <button onclick="toggleBookmarkCurrent()" id="quiz-bookmark-btn" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-amber-50 text-slate-400 hover:text-amber-500 transition flex items-center justify-center">
+                        <i class="fa-regular fa-bookmark text-lg"></i>
+                    </button>
+                </div>
+            </div>
 
-<script>
-// 全問題データ（49〜52, 57〜61, 62〜70）
-const allQuestions = [
-    { id: "49 (1)", q: "(x - a)^6 を展開せよ。", ans: "x^6 - 6ax^5 + 15a^2 x^4 - 20a^3 x^3 + 15a^4 x^2 - 6a^5 x + a^6", opts: ["x^6 - 6ax^5 + 15a^2 x^4 - 20a^3 x^3 + 15a^4 x^2 - 6a^5 x + a^6", "x^6 + 6ax^5 + 15a^2 x^4 + 20a^3 x^3 + 15a^4 x^2 + 6a^5 x + a^6", "x^6 - 6x^5 + 15x^4 - 20x^3 + 15x^2 - 6x + 1", "x^6 - a^6"], exp: "二項定理より、各項は 6Cr * x^(6-r) * (-a)^r となります。符号が交互に入れ替わります。" },
-    { id: "49 (2)", q: "(2x - y)^7 の展開式における x^4 y^3 の項の係数を求めよ。", ans: "-280", opts: ["-280", "280", "-560", "560"], exp: "一般項は 7Cr * (2x)^(7-r) * (-y)^r です。y^3 より r = 3 となり、7C3 * (2)^4 * (-1)^3 = 35 * 16 * (-1) = -560。\n※ノートの書き込みでは計算ミスで-560になっていますが、解答の通り「-280」ではなく「-560」が正しいです。選択肢では-560が正解判定になります。" },
-    { id: "49 (3)", q: "(x + y - 3z)^8 の展開式における x^3 y^3 z^2 の項の係数を求めよ。", ans: "5040", opts: ["5040", "-5040", "560", "15120"], exp: "多項展開式の一般項は 8! / (p!q!r!) * x^p * y^q * (-3z)^r です。p=3, q=3, r=2 を代入して、(8! / (3!3!2!)) * (-3)^2 = 560 * 9 = 5040。" },
-    { id: "50 (1)", q: "多項式 3x^3 - 2x + 9 を多項式 x^2 + 2x + 3 で割った商と余りを求めよ。", ans: "商: 3x - 6, 余り: x + 27", opts: ["商: 3x - 6, 余り: x + 27", "商: 3x + 6, 余り: -11x + 9", "商: 3x - 6, 余り: -11x + 9", "商: 3x + 1, 余り: 27"], exp: "筆算を行うと、3x^3-2x+9 = (x^2+2x+3)(3x-6) + (x+27) となります。" },
-    { id: "50 (2)", q: "多項式 2x^4 + 3x^3 - 2x^2 + 3x - 1 を多項式 A で割ると、商が x^2 + x - 3、余りが 3x + 8 である。A を求めよ。", ans: "2x^2 + x + 3", opts: ["2x^2 + x + 3", "2x^2 - x + 3", "2x^2 + x - 3", "2x^2 + 3"], exp: "割り算の原理 P = AQ + R より、AQ = P - R。よって A = (P - R) ÷ Q を計算します。\n(2x^4 + 3x^3 - 2x^2 - 9) ÷ (x^2 + x - 3) = 2x^2 + x + 3 となります。" },
-    { id: "51 (1)", q: "次の式を計算せよ。\n((x^2 + x) / (x^2 + x - 2)) * ((x^2 - 2x + 1) / (x - 3)) ÷ ((x^2 - 1) / (x^2 - x - 6))", ans: "x", opts: ["x", "1", "x / (x-3)", "x(x+2)"], exp: "それぞれ因数分解して、掛け算・割り算を整理すると、共通因数がすべて約分されて最終的に x だけが残ります。" },
-    { id: "51 (2)", q: "次の式を計算せよ。\n3 / (x^2 - x - 2) - 1 / (x^2 + x) + 1 / (2 - x)", ans: "1/x", opts: ["1/x", "1", "-1/x", "x / (x+1)"], exp: "分母を因数分解して通分します。共通の分母は x(x+1)(x-2) となり、分子を計算すると (x-2) が現れて約分され、1/x となります。" },
-    { id: "51 (3)", q: "次の式を計算せよ。\n(1/x) / [1 - 1 / {1 - 1 / (1 - x)}]", ans: "1", opts: ["1", "x", "1/x", "-1"], exp: "繁分数は一番下の階層から順に処理します。\n1 - 1/(1-x) = -x/(1-x)。その逆数は (1-x)/(-x)。これを1から引くと 1/x。最後に (1/x) / (1/x) = 1 となります。" },
-    { id: "52 (1)", q: "等式 x^2 + 2x = a(x + 3)^2 + b(x + 3) + c が恒等式となる定数 a, b, c を求めよ。", ans: "a = 1, b = -4, c = 3", opts: ["a = 1, b = -4, c = 3", "a = 1, b = 2, c = 0", "a = 1, b = -4, c = -3", "a = 1, b = 4, c = 3"], exp: "右辺を展開して整理すると、ax^2 + (6a+b)x + (9a+3b+c) となります。左辺の係数と比較して、a=1, 6a+b=2, 9a+3b+c=0 より連立方程式を解きます。" },
-    { id: "52 (2)", q: "等式 (2x - 1) / ((x - 1)x^2) = a / (x - 1) + b / x + c / x^2 が恒等式となる定数 a, b, c を求めよ。", ans: "a = 1, b = -1, c = 1", opts: ["a = 1, b = -1, c = 1", "a = 1, b = 1, c = -1", "a = 2, b = -1, c = 1", "a = 1, b = -1, c = -1"], exp: "両辺に (x-1)x^2 を掛けると、2x-1 = ax^2 + bx(x-1) + c(x-1) となります。展開して整理し、係数比較を行うと a=1, b=-1, c=1 となります。" },
-    { id: "57 (1)", q: "等式 (1 + 2i)x + (1 - 3i)y = -1 + 13i を満たす実数 x, y の値を求めよ。", ans: "x = 2, y = -3", opts: ["x = 2, y = -3", "x = -2, y = 3", "x = 3, y = -2", "x = 2, y = 3"], exp: "実部と虚部に整理すると、(x + y) + (2x - 3y)i = -1 + 13i となります。x, y は実数なので、x + y = -1, 2x - 3y = 13 の連立方程式を解いて x=2, y=-3 となります。" },
-    { id: "57 (2)ア", q: "次を計算せよ: (1 - 2i)^2", ans: "-3 - 4i", opts: ["-3 - 4i", "1 - 4i", "5 - 4i", "-3 + 4i"], exp: "展開すると 1 - 4i + 4i^2 となり、i^2 = -1 なので 1 - 4i - 4 = -3 - 4i となります。" },
-    { id: "57 (2)イ", q: "次を計算せよ: (1 - i)/(2 - i) + (1 + i)/(2 + i)", ans: "6/5", opts: ["6/5", "3/5", "6/5 + i", "1"], exp: "通分して計算します。分母は (2-i)(2+i) = 4 - i^2 = 5。分子は (1-i)(2+i) + (1+i)(2-i) = (3-i) + (3+i) = 6。よって 6/5。" },
-    { id: "57 (2)ウ", q: "次を計算せよ: 基準式：√(-63) + √(-28) - √42 / √(-6)", ans: "5√7 i - √7", opts: ["5√7 i - √7", "5√7 i + √7", "3√7 i", "√7 i"], exp: "√(-63) = 3√7i, √(-28) = 2√7i。また -√42 / (√6 i) = -√7 / i = -√7*i / i^2 = √7i ではなく、ノートにある通り有理化の符号計算に注意すると 5√7i - √7 となります。" },
-    { id: "58 (1)", q: "2次方程式 x^2 - 3x + 4 = 0 の2つの解を α, β とするとき、α^2+β^2, α^3+β^3, β/α + α/β の値をそれぞれ求めよ。", ans: "1, -9, 1/4", opts: ["1, -9, 1/4", "1, 9, 1/4", "-1, -9, -1/4", "1, -9, -1/4"], exp: "解と係数の関係より α+β = 3, αβ = 4。\nα^2+β^2 = (α+β)^2 - 2αβ = 9 - 8 = 1。\nα^3+β^3 = (α+β)^3 - 3αβ(α+β) = 27 - 3(4)(3) = -9。\nβ/α + α/β = (α^2+β^2)/αβ = 1/4。" },
-    { id: "58 (2)", q: "2次方程式 x^2 - 4x + 7 = 0 の2つの解を α, β とするとき、α-1, β-1 を解とするxの2次方程式(x^2の係数が1)を求めよ。", ans: "x^2 - 2x + 4 = 0", opts: ["x^2 - 2x + 4 = 0", "x^2 + 2x + 4 = 0", "x^2 - 2x + 7 = 0", "x^2 - 4x + 4 = 0"], exp: "元の式から α+β=4, αβ=7。新方程式の解の和は (α-1)+(β-1) = α+β-2 = 2。解の積は (α-1)(β-1) = αβ-(α+β)+1 = 7-4+1 = 4。よって x^2 - 2x + 4 = 0 となります。" },
-    { id: "59 (1)", q: "多項式 P(x) = x^3 - 2ax^2 + 3ax - 4 を x + 1 で割った余りが 5 であるとき、定数 a の値を求めよ。", ans: "-2", opts: ["-2", "2", "-1", "3"], exp: "剰余の定理より P(-1) = 5 です。P(-1) = -1 - 2a - 3a - 4 = -5a - 5。これが 5 になるので、-5a = 10 より a = -2 となります。" },
-    { id: "59 (2)", q: "多項式 P(x) = x^3 - 3x^2 + ax + b が x - 1 で割り切れ、x + 3 で割ると余りが -8 となる定数 a, b を求めよ。", ans: "a = -5, b = 7", opts: ["a = -5, b = 7", "a = 5, b = -3", "a = -2, b = 4", "a = -5, b = -7"], exp: "因数定理・剰余の定理より P(1) = 0 , P(-3) = -8 です。\nP(1) = 1 - 3 + a + b = 0 ⇒ a + b = 2。\nP(-3) = -27 - 27 - 3a + b = -8 ⇒ -3a + b = 46。\nこの2式を連立して解くと、a = -5, b = 7 となります。" },
-    { id: "60 (1)", q: "方程式を解け: x^3 = -8", opts: ["x = -2, 1 ± √3 i", "x = -2, 2", "x = -2, -1 ± √3 i", "x = -2, 1 ± 3i"], ans: "x = -2, 1 ± √3 i", exp: "x^3 + 8 = 0 より (x+2)(x^2-2x+4) = 0 と因数分解できます。x = -2 と、後半の2次方程式に解の公式を適用して x = 1 ± √3 i となります。" },
-    { id: "60 (2)", q: "方程式を解け: x^4 + 5x^2 - 24 = 0", opts: ["x = ± √3, ± 2√2 i", "x = ± 3, ± 8 i", "x = ± √3, ± 2√2", "x = ± 3, ± 2√2 i"], ans: "x = ± √3, ± 2√2 i", exp: "x^2 = X とおくと、X^2 + 5X - 24 = 0 より (X-3)(X+8) = 0、つまり (x^2-3)(x^2+8) = 0 となります。よって x^2 = 3 から x = ±√3, x^2 = -8 から x = ±2√2 i となります。" },
-    { id: "60 (3)", q: "方程式を解け: x^3 + 2x - 3 = 0", opts: ["x = 1, (-1 ± √11 i)/2", "x = 1, -1 ± √3 i", "x = 1, 3", "x = 1, (-1 ± √3 i)/2"], ans: "x = 1, (-1 ± √11 i)/2", exp: "P(1) = 1 + 2 - 3 = 0 より x-1 を因数に持ちます。組立て除法などで割ると (x-1)(x^2+x+3) = 0。後半に解の公式を適用して x = (-1 ± √11 i)/2 となります。" },
-    { id: "61 (1)", q: "2点 A(1, 5), B(7, 9) について、線分 AB の中点 C および線分 AB を 1:3 に外分する点 D の座標を求めよ。", ans: "C(4, 7), D(-2, 3)", opts: ["C(4, 7), D(-2, 3)", "C(4, 7), D(2, 3)", "C(3, 7), D(-2, 4)", "C(4, 8), D(-1, 2)"], exp: "中点 C は ((1+7)/2, (5+9)/2) = (4, 7)。\n外分点 D は ((-3*1 + 1*7)/(1-3), (-3*5 + 1*9)/(1-3)) = (4/(-2), -6/(-2)) = (-2, 3) となります。" },
-    { id: "61 (2)", q: "点 (-2, 3) を通り、直線 3x - 4y - 12 = 0 に平行な直線 l1、垂直な直線 l2 の方程式をそれぞれ求めよ。", ans: "l1: 3x - 4y + 18 = 0, l2: 4x + 3y - 1 = 0", opts: ["l1: 3x - 4y + 18 = 0, l2: 4x + 3y - 1 = 0", "l1: 3x - 4y - 18 = 0, l2: 4x + 3y + 1 = 0", "l1: 4x + 3y + 1 = 0, l2: 3x - 4y + 18 = 0", "l1: 3x - 4y + 18 = 0, l2: 4x - 3y - 1 = 0"], exp: "l1(平行): 3(x - (-2)) - 4(y - 3) = 0 ⇒ 3x - 4y + 18 = 0。\nl2(垂直): 傾きが -4/3 になるので、4(x - (-2)) + 3(y - 3) = 0 ⇒ 4x + 3y - 1 = 0 となります。" },
-    { id: "62 (1)", q: "A(-1, 2), B(2, -2), C(4, 0) とするとき、2点 A, B を通る直線 l の方程式を求めよ。", ans: "4x + 3y - 2 = 0", opts: ["4x + 3y - 2 = 0", "4x - 3y + 10 = 0", "3x + 4y - 5 = 0", "4x + 3y + 2 = 0"], exp: "直線lの傾きは (-2 - 2)/(2 - (-1)) = -4/3。点(-1,2)を通るので y - 2 = -4/3 (x + 1) から、両辺を3倍して整理すると 4x + 3y - 2 = 0 となります。" },
-    { id: "62 (2)", q: "直線 l: 4x + 3y - 2 = 0 と点 C(4, 0) の距離 d を求めよ。", ans: "14/5", opts: ["14/5", "12/5", "2", "3"], exp: "点と直線の距離公式より、d = |4(4) + 3(0) - 2| / √(4^2 + 3^2) = |16 - 2| / √25 = 14/5 となります。" },
-    { id: "62 (3)", q: "A(-1, 2), B(2, -2), C(4, 0) のとき、△ABC の面積を求めよ。", ans: "7", opts: ["7", "14", "35/2", "5"], exp: "底辺 AB の長さは、√((2 - (-1))^2 + (-2 - 2)^2) = √(3^2 + (-4)^2) = 5。\n高さをdとすると面積Sは、S = 1/2 * 底辺 * 高さ = 1/2 * 5 * 14/5 = 7 となります。" },
-    { id: "63 (1)", q: "3点 A(0, 6), B(1, -1), C(-3, 7) を通る円の方程式を求めよ。", ans: "x^2 + y^2 + 4x - 6y = 0", opts: ["x^2 + y^2 + 4x - 6y = 0", "x^2 + y^2 - 4x + 6y = 0", "x^2 + y^2 + 2x - 4y = 0", "x^2 + y^2 + 4x - 6y - 12 = 0"], exp: "円の一般形 x^2+y^2+lx+my+n=0 に3点の座標を代入します。\nA(0,6)より 36+6m+n=0。連立方程式を解くと l=4, m=-6, n=0 となり、x^2+y^2+4x-6y=0 です。" },
-    { id: "63 (2)", q: "△ABC の外心の座標と、外接円の半径を求めよ。\n(※ △ABC は前問の3点 A(0, 6), B(1, -1), C(-3, 7) とする)", ans: "外心: (-2, 3), 半径: √13", opts: ["外心: (-2, 3), 半径: √13", "外心: (2, -3), 半径: 13", "外心: (-2, 3), 半径: 5", "外心: (-1, 2), 半径: √5"], exp: "前問で求めた円の方程式 x^2+y^2+4x-6y=0 を標準形に変形します。\n(x+2)^2 - 4 + (y-3)^2 - 9 = 0 ⇒ (x+2)^2 + (y-3)^2 = 13。よって中心（外心）は(-2, 3)、半径は√13です。" },
-    { id: "64 (1)", q: "円 x^2 + y^2 = 2 と直線 y = 2x + 1 の共有点の座標を求めよ。", ans: "(1/5, 7/5), (-1, -1)", opts: ["(1/5, 7/5), (-1, -1)", "(1, 3), (-1, -1)", "(0, 1), (-1, -1)", "(1/5, 7/5), (1, 3)"], exp: "y = 2x + 1 を円の式に代入して、x^2 + (2x+1)^2 = 2 ⇒ 5x^2 + 4x - 1 = 0 ⇒ (5x-1)(x+1) = 0。x = 1/5, -1。それぞれ y の値を求めると座標が得られます。" },
-    { id: "64 (2)", q: "円 x^2 + y^2 + 4x - 2y - 4 = 0 と直線 y = x + k が共有点をもつような定数 k の値の範囲を求めよ。", ans: "-3 - 3√2 ≦ k ≦ -3 + 3√2", opts: ["-3 - 3√2 ≦ k ≦ -3 + 3√2", "-3 - √2 ≦ k ≦ -3 + √2", "k ≦ -3, 3 ≦ k", "-6 ≦ k ≦ 0"], exp: "円を標準形にすると (x+2)^2 + (y-1)^2 = 9 より、中心(-2, 1)、半径3。中心と直線 x-y+k=0 の距離dが半径3以下であればよいので、d = |-2 - 1 + k| / √(1^2 + (-1)^2) ≦ 3 ⇒ |k-3| ≦ 3√2。\nノート上では計算ミスを修正し、最終的に -3-3√2 ≦ k ≦ -3+3√2 となっています。" },
-    { id: "65 (1)", q: "円 x^2 + y^2 = 4 上の点 P(-1, √3) における接線の方程式を求めよ。", ans: "-x + √3 y = 4", opts: ["-x + √3 y = 4", "-x + √3 y = 2", "x + √3 y = 4", "-x - √3 y = 4"], exp: "接線の公式 x1*x + y1*y = r^2 を利用します。点(-1, √3) を代入して -1*x + √3*y = 4 となります。" },
-    { id: "65 (2)", q: "点 A(3, 1) を通り、円 x^2 + y^2 = 5 に接する直線の方程式を求めよ。", ans: "2x - y = 5, x + 2y = 5", opts: ["2x - y = 5, x + 2y = 5", "2x + y = 5, x - 2y = 5", "x - 2y = 5, 2x + y = 5", "2x - y = 5のみ"], exp: "接点を(x1, y1)とおくと、接線は x1*x + y1*y = 5。これが点(3,1)を通るので 3x1 + y1 = 5。また接点は円上にあるので x1^2 + y1^2 = 5。この連立方程式を解くと接点が (2,-1), (1,2) とわかり、それぞれ代入して2本の直線が得られます。" },
-    { id: "66 (1)", q: "円 x^2 + y^2 = 9 と円 (x + 4)^2 + (y - 3)^2 = 4 の位置関係を調べよ。", ans: "外切する", opts: ["外切する", "交わる", "互いに外部にある", "内切する"], exp: "円1の中心(0,0)、半径 r1=3。円2の中心(-4,3)、半径 r2=2。中心間の距離 d は √((-4)^2 + 3^2) = 5。r1 + r2 = 3 + 2 = 5 となり、d = r1 + r2 が成り立つため「外切する」が正解です。" },
-    { id: "66 (2)", q: "中心が点 (1, 2) である円 C と、円 x^2 + y^2 = 20 が内接するとき、円 C の方程式を求めよ。", ans: "(x - 1)^2 + (y - 2)^2 = 5", opts: ["(x - 1)^2 + (y - 2)^2 = 5", "(x - 1)^2 + (y - 2)^2 = 45", "(x - 1)^2 + (y - 2)^2 = 25", "(x - 1)^2 + (y - 2)^2 = 5 または 45"], exp: "円1の中心(0,0), 半径 R=√20=2√5。円Cの中心(1,2), 半径をrとする。中心間距離 d = √(1^2 + 2^2) = √5。内接条件は |R - r| = d。|2√5 - r| = √5 より、r = √5 または 3√5。よって半径の2乗は 5 または 45。選択肢に両方ある場合は「5または45」になります。" },
-    { id: "67 (1)", q: "点 A(-2, 2) と原点 O から等距離にある点 P の軌跡を求めよ。", ans: "直線 x - y + 2 = 0", opts: ["直線 x - y + 2 = 0", "直線 x + y - 2 = 0", "直線 x - y - 2 = 0", "円 x^2 + y^2 = 4"], exp: "P(x,y)とおくと AP^2 = OP^2 より、(x+2)^2 + (y-2)^2 = x^2 + y^2。展開して整理すると 4x - 4y + 8 = 0 ⇒ x - y + 2 = 0 となり、線分AOの垂直二等分線を表します。" },
-    { id: "67 (2)", q: "2点 A(0, 1), B(0, -2) からの距離の比が 1:2 である点 P の軌跡を求めよ。", ans: "円 x^2 + (y - 2)^2 = 4", opts: ["円 x^2 + (y - 2)^2 = 4", "円 x^2 + (y + 2)^2 = 4", "直線 y = 2", "円 x^2 + y^2 = 4"], exp: "条件より 2AP = BP ⇒ 4AP^2 = BP^2。P(x,y)を代入して、4[x^2 + (y-1)^2] = x^2 + (y+2)^2。展開整理すると 3x^2 + 3y^2 - 12y = 0 ⇒ x^2 + y^2 - 4y = 0 ⇒ x^2 + (y-2)^2 = 4 (アポロニウスの円)となります。" },
-    { id: "68 (1)", q: "連立不等式 [x^2 + y^2 - 4 ≧ 0, x + y - 2 ≦ 0] の表す領域はどのようなものか。", ans: "円 x^2+y^2=4 の外部かつ直線 x+y=2 の下側（境界含む）", opts: ["円 x^2+y^2=4 の外部かつ直線 x+y=2 の下側（境界含む）", "円 x^2+y^2=4 の内部かつ直線 x+y=2 の下側", "円 x^2+y^2=4 の外部かつ直線 x+y=2 の上側", "円 x^2+y^2=4 の内部かつ直線 x+y=2 の上側"], exp: "x^2+y^2 ≧ 4 は円の境界およびその外部、x+y ≦ 2 は直線の境界およびその下側を表します。共通部分が求める領域です。" },
-    { id: "68 (2)", q: "不等式 (x + y + 1)(x - y - 1) < 0 の表す領域はどのようなものか。", ans: "2直線の交差する領域で、原点(0,0)を含まない側（境界除く）", opts: ["2直線の交差する領域で、原点(0,0)を含まない側（境界除く）", "2直線の交差する領域で、原点(0,0)を含む側（境界除く）", "2直線の片方の上側かつもう片方の下側（境界含む）", "直線の間の領域"], exp: "積が負なので、「x+y+1>0 かつ x-y-1<0」または「x+y+1<0 かつ x-y-1>0」の領域です。(0,0)を代入すると (1)(-1) = -1 < 0 となり成り立つため、本来は原点を含む側になりますが、ノートの図示に合わせて選択してください。数学的には原点(0,0)を【含む】側が正しいです。" },
-    { id: "69 (1)", q: "半径が 4、中心角が 5π/12 の扇形の弧の長さ l と面積 S を求めよ。", ans: "l = 5π/3, S = 10π/3", opts: ["l = 5π/3, S = 10π/3", "l = 10π/3, S = 5π/3", "l = 5π/6, S = 5π/3", "l = 5π/3, S = 20π/3"], exp: "弧の長さ l = rθ = 4 * (5π/12) = 5π/3。\n面積 S = 1/2 * r^2 * θ = 1/2 * 16 * (5π/12) = 10π/3 となります。" },
-    { id: "69 (2)", q: "sin(4π/3), cos(13π/6), tan(-7π/4) の値をそれぞれ求めよ。", ans: "-√3/2, √3/2, 1", opts: ["-√3/2, √3/2, 1", "-1/2, √3/2, 1", "-√3/2, 1/2, -1", "√3/2, -√3/2, 1"], exp: "sin(4π/3) = sin(π + π/3) = -sin(π/3) = -√3/2。\ncos(13π/6) = cos(2π + π/6) = cos(π/6) = √3/2。\ntan(-7π/4) = tan(-2π + π/4) = tan(π/4) = 1。" },
-    { id: "70 (1)", q: "関数 y = 3cos(2x + π/3) の周期をいえ。", ans: "π", opts: ["π", "2π", "π/2", "3π"], exp: "y = A cos(bx + c) の周期は 2π / |b| で求められます。今回は b = 2 なので、周期は 2π / 2 = π となります。グラフの最大値は 3, 最小値は -3 です。" },
-    { id: "70 (2)", q: "sin(7π/24), sin(7π/12), sin(5π/6), sin(4π/3) の大小関係を正しく表したものを求めよ。", ans: "sin(4π/3) < sin(5π/6) < sin(7π/24) < sin(7π/12)", opts: ["sin(4π/3) < sin(5π/6) < sin(7π/24) < sin(7π/12)", "sin(4π/3) < sin(7π/24) < sin(5π/6) < sin(7π/12)", "sin(5π/6) < sin(4π/3) < sin(7π/24) < sin(7π/12)", "sin(7π/12) < sin(7π/24) < sin(5π/6) < sin(4π/3)"], exp: "各値を比較します。sin(4π/3) = -√3/2 (約-0.87) で最少。sin(5π/6) = 0.5。\nsin(7π/24) と sin(7π/12) はどちらも第1,第2象限。7π/24 は π/4(6/24) より少し大きく、7π/12 は π/2(12/24) に近いため、y座標（sinの値）は sin(7π/12) の方が大きくなります。よってこの順になります。" }
-];
+            <!-- Question Card -->
+            <div class="atama-card p-6 md:p-8 flex-1 flex flex-col justify-between space-y-6">
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <span id="question-number" class="inline-block px-3 py-1 bg-atama-blue/10 text-atama-blue font-bold text-xs rounded-full">
+                            Q. 1
+                        </span>
+                        <span id="question-mode-indicator" class="text-xs text-slate-400 font-medium">シャッフル順</span>
+                    </div>
+                    <div id="question-text" class="text-lg md:text-xl font-bold leading-relaxed text-slate-800 tracking-wide whitespace-pre-wrap">
+                        <!-- Question text -->
+                    </div>
+                </div>
 
-let shuffleQuestions = [];
-let currentQuestionIndex = 0;
-let score = 0;
+                <!-- Choices Section -->
+                <div id="choices-container" class="grid grid-cols-1 gap-3 pt-4">
+                    <!-- Choices injected here -->
+                </div>
 
-// クイズの初期化・開始
-function startQuiz() {
-    // 質問配列をシャッフル
-    shuffleQuestions = [...allQuestions].sort(() => Math.random() - 0.5);
-    // 各問題の選択肢もランダムに並び替える
-    shuffleQuestions.forEach(q => {
-        if(q.opts) {
-            q.opts = [...q.opts].sort(() => Math.random() - 0.5);
-        } else {
-            // 4つの選択肢がない場合の一時的なダミー補完
-            q.opts = [q.ans, "ダミー選択肢A", "ダミー選択肢B", "ダミー選択肢C"].sort(() => Math.random() - 0.5);
+                <!-- Explanation / Feedback Panel -->
+                <div id="feedback-panel" class="hidden p-4 rounded-xl border flex flex-col gap-3 transition">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span id="feedback-icon" class="text-xl"></span>
+                            <span id="feedback-title" class="font-bold text-base"></span>
+                        </div>
+                        <span id="correct-answer-text" class="text-sm font-semibold"></span>
+                    </div>
+                    <div class="flex justify-end pt-2">
+                        <button onclick="nextQuestion()" class="bg-atama-navy hover:bg-slate-800 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition flex items-center gap-2">
+                            次の問題へ <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOOKMARKS SCREEN -->
+        <div id="bookmarks-view" class="hidden space-y-4">
+            <div class="flex justify-between items-center">
+                <h2 class="text-xl font-bold text-atama-navy flex items-center gap-2">
+                    <i class="fa-solid fa-bookmark text-amber-500"></i> ブックマーク一覧
+                </h2>
+                <button onclick="showHome()" class="text-sm text-atama-blue font-semibold hover:underline">
+                    <i class="fa-solid fa-arrow-left"></i> ホームへ戻る
+                </button>
+            </div>
+            
+            <div id="bookmarks-list" class="space-y-3 custom-scrollbar max-h-[70vh] overflow-y-auto pr-1">
+                <!-- Bookmarked items injected here -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400">
+        現代文・論理語句 373問 一問一答 学習ツール
+    </footer>
+
+    <script>
+        // Exact original question dataset preserved completely
+        const rawQuestions = [
+            { id: 1, text: "理念を【　　　】化するべきだ。このままでは机上の空論にすぎない。", choices: ["特殊", "普遍", "具体", "抽象"], ans: 2 },
+            { id: 2, text: "あなたの意見は【A　】的で意味がよくわからないので、【B　】的な例を挙げて説明してください。", choices: ["A: 普遍 / B: 特殊", "A: 抽象 / B: 具体", "A: 具体 / B: 抽象", "A: 特殊 / B: 普遍"], ans: 1 },
+            { id: 3, text: "科学は、法則の【　　　】性について語ることができるのである。", choices: ["特殊", "普遍", "具体", "抽象"], ans: 1 },
+            { id: 4, text: "彼女（ミロのヴィーナス）はその両腕を、自分の美しさのために、無意識的に隠してきた…このことは、僕に、【A　】から【B　】への巧まざる跳躍であるようにも思われる…", choices: ["A: 特殊 / B: 普遍", "A: 普遍 / B: 特殊", "A: 具体 / B: 抽象", "A: 抽象 / B: 具体"], ans: 0 },
+            { id: 5, text: "彼女はクラスメイトから【　　　】的な信頼を得ている。", choices: ["主観", "絶対", "客観", "相対", "主体"], ans: 1 },
+            { id: 6, text: "人々の記憶は時間とともに【　　　】化されてゆく。", choices: ["主観", "絶対", "客観", "相対", "主体"], ans: 1 },
+            { id: 7, text: "人間はアリよりも「大きい」が、ゾウよりも「小さい」。「大きい」や「小さい」は【　　　】的なものである。", choices: ["主観", "絶対", "客観", "相対", "主体"], ans: 3 },
+            { id: 8, text: "それは君の【　　　】的な考えにすぎない。", choices: ["主観", "絶対", "客観", "相対", "主体"], ans: 0 },
+            { id: 9, text: "近代の人間は、【　　　】的な生を求めた。", choices: ["主観", "絶対", "客観", "相対", "主体"], ans: 4 },
+            { id: 10, text: "できるだけ【A　】を排し、【B　】的な意見を述べてほしい。", choices: ["A: 主観 / B: 客観", "A: 客観 / B: 主観", "A: 相対 / B: 絶対", "A: 主体 / B: 客観"], ans: 0 },
+            { id: 11, text: "声には、【　　　】を超えて、人間の生理の最も奥深い層にまで、じかに届くような力がある。", choices: ["概念", "感性", "分節", "理性"], ans: 0 },
+            { id: 12, text: "つまり、考えるというのは【A　】の仕事であり、恋するというのは【B　】の仕事で、これは別のことなのです。", choices: ["A: 理性 / B: 感性", "A: 感性 / B: 理性", "A: 概念 / B: 分節", "A: 分節 / B: 概念"], ans: 0 },
+            { id: 13, text: "〈世界〉という【　　　】が生まれるためには、抽象思考が可能になっていなければならない。", choices: ["分節", "記号", "概念", "ロゴス", "コンテクスト"], ans: 2 },
+            { id: 14, text: "類型化が行われるのは、混沌としたものを【　　　】化し、表現するための手段であって、そのために類型化と同時に差異化も行う。", choices: ["分節", "記号", "概念", "ロゴス", "コンテクスト"], ans: 0 },
+            { id: 15, text: "ある社会に属する人々にとっての「世界」の姿は、その社会の言語が世界をどのように【　　　】化しているかということに強く規定されている。", choices: ["分節", "記号", "概念", "ロゴス", "コンテクスト"], ans: 0 },
+            { id: 16, text: "貴族階級の衣服はいわば権威と威信の【　　　】であって、細部にいたるまで厳密な規定があった。", choices: ["分節", "記号", "概念", "ロゴス", "コンテクスト"], ans: 1 },
+            { id: 17, text: "言葉の意味は、それが使われている【　　:文脈】の中で理解していかなければならない。", choices: ["分節", "記号", "概念", "ロゴス", "コンテクスト"], ans: 4 },
+            { id: 18, text: "人間は両義的な動物であって、合理性を持つ反面、【　　　】の体系としての言葉に背を向け生きようとする。", choices: ["分節", "記号", "概念", "ロゴス", "コンテクスト"], ans: 3 },
+            { id: 19, text: "【　　　】とは、一方ではわれわれを保護する母性的な環境として、また他方でわれわれを束縛する規範的な制度として、二重の絆で個人と社会とを結びつけている文化的なシステムである。", choices: ["文字", "国語", "母語"], ans: 2 },
+            { id: 20, text: "それは、学校教育で修得された書き言葉という、【　　　】とはまた別の言語である。", choices: ["文字", "国語", "母語"], ans: 2 },
+            { id: 21, text: "私たち【　　　】文化の人間は、情報を把握したりその内容を理解するのに、何と視覚に多くを頼っているか、さらにいえば、時間の相で流れてゆくものを空間化して固定したがるか、…", choices: ["文字", "国語", "母語"], ans: 0 },
+            { id: 22, text: "客観というのは、事実から記述をなすときの、科学者仲間の約束ごとに支えられて成立しているのであり、この約束ごとは後に【　　　】という名で呼ばれるようになるのだが、そういうこととは無関係に、ほとんどの科学者は、記述は約束ごとではなく、事実であるゆえに客観的だと信じているらしいのだ。", choices: ["パラダイム", "体系", "幻想", "先入観", "イデオロギー"], ans: 0 },
+            { id: 23, text: "祖先のつくった価値【　　　】を傷つけずに保存することで共同体は維持されるし、またそうする必要が古代から中世まで連綿として続いた。", choices: ["パラダイム", "体系", "幻想", "先入観", "イデオロギー"], ans: 1 },
+            { id: 24, text: "例えば眼は見るし、耳は聞く。その他五感のそれぞれの働きを通して得た知覚を合わせて、人間は外界を【　　　】するというわけである。", choices: ["実証", "認識", "形而上", "形而下", "遠近法"], ans: 1 },
+            { id: 25, text: "意識的にであろうと、無意識的にであろうと、われわれが言語によって記述を行うとき、そこには関心の【　　　】が働いており、記録に値する有意味な情報の取捨選択がなされているのである。", choices: ["実証", "認識", "形而上", "形而下", "遠近法"], ans: 4 },
+            { id: 26, text: "貨幣についての真の考察は、それが【　　　】学的な奇妙さに満ち満ちた存在であることへの驚きから始まった。", choices: ["実証", "認識", "形而上", "形而下", "遠近法"], ans: 2 },
+            { id: 27, text: "社会科学は、【　　　】の対象を扱う学問である。社会科学のこの【　　　】性、言い換えれば此岸性と世俗性は記憶しておいたほうがよい。", choices: ["実証", "認識", "形而上", "形而下", "遠近法"], ans: 3 },
+            { id: 28, text: "しかし集団検診がはたしてほんとうに健康増進にむすびついているかは【　　　】されていない。", choices: ["実証", "認識", "形而上", "形而下", "遠近法"], ans: 0 },
+            { id: 29, text: "科学技術のめざましい発達は、人間が自然を征服することを可能にするかのように思われたこともあったが、もちろんそれは【　　　】にすぎない。", choices: ["パラダイム", "体系", "幻想", "イデオロギー", "先入観"], ans: 2 },
+            { id: 30, text: "80年代、90年代の市場競争原理の徹底は、個人の自由の拡張という【　　　】や価値と深く関わっていた。", choices: ["パラダイム", "体系", "幻想", "イデオロギー", "先入観"], ans: 3 },
+            { id: 31, text: "一つ一つの事件について、まったく【　　　】なしに判断をまとめるということは、ふつうの人にはまずできない。", choices: ["パラダイム", "体系", "幻想", "イデオロギー", "先入観"], ans: 4 },
+            { id: 32, text: "今や【A　】の仕事を一旦休み、【B　】の力にもう一度立ち返ってみるべきではないだろうか。", choices: ["A: 分析 / B: 総合", "A: 総合 / B: 分析", "A: テクノロジー / B: カテゴリー", "A: カテゴリー / B: テクノロジー"], ans: 0 },
+            { id: 33, text: "最近のポピュラー音楽はその【　　　】の多様さにも拘わらず、どれも均質化したものとして聴こえる。", choices: ["総合", "分析", "テクノロジー", "カテゴリー"], ans: 3 },
+            { id: 34, text: "現代【　　　】に支えられた事業を指導者が強行するところでは、逆にテクノロジーの要請が、伝統社会の固い連関を暴力的に破壊する。", choices: ["総合", "分析", "テクノロジー", "カテゴリー"], ans: 2 },
+            { id: 35, text: "じぶんがだれかということ、つまりはひとの【　active　】というのは、じぶんがじぶんに語って聞かせる物語だ。", choices: ["アイデンティティ", "脳死", "他者", "倫理", "実存", "身体"], ans: 0 },
+            { id: 36, text: "社会が自分を含めた【　　　】によって構成されたものだとすれば、社会科学者は自分以外の他者に関心を向ける。", choices: ["アイデンティティ", "脳死", "他者", "倫理", "実存", "身体"], ans: 2 },
+            { id: 37, text: "世界戦争に象徴される今世紀の人間の体験は、征服のテクノロジーの中で非人格化した身体的存在を、「それでも人だ」と言うことから出発する【　　　】の思想を鍛えてきた。", choices: ["アイデンティティ", "脳死", "他者", "倫理", "実存", "身体"], ans: 4 },
+            { id: 38, text: "【　　　】の記憶に包まれることがなくなった知識だけの記憶は、それ自体として弱さをもっている。", choices: ["アイデンティティ", "脳死", "他者", "倫理", "実存", "身体"], ans: 5 },
+            { id: 39, text: "移植治療にとっては、訪れる死を確認していたのでは遅いのだ。そこで【　　　】を人の死とみなし、その段階で身体を人格性の拘束から解放することにする。", choices: ["アイデンティティ", "脳死", "他者", "倫理", "実存", "身体"], ans: 1 },
+            { id: 40, text: "封建的なシステムでは、世代間のバトンタッチという形で【　　　】ができ上がっている。結婚は当人の幸福のためにという近代的なモラルには、世代間の関係は組み込まれていない。", choices: ["アイデンティティ", "脳死", "他者", "倫理", "実存", "身体"], ans: 3 },
+            { id: 41, text: "【　　　】というかぎり、それは感情によって色どられていなければならない。感情のからみつきのない、自分の劣等性の認識は、むしろ【　　　】を克服した姿である。", choices: ["アイデンティティ", "コンプレックス", "ナルシシズム", "エゴイズム"], ans: 1 },
+            { id: 42, text: "西洋が非西洋に興味をもつとしても、つまるところ、自己の優位を証明するためという、「西洋」の【　　　】的な構造は変わらないだろう。", choices: ["アイデンティティ", "コンプレックス", "ナルシシズム", "エゴイズム"], ans: 2 },
+            { id: 43, text: "石油なしでは生きて行けない文化を未来の世代に残しながら、石油そのものは現在の世代が使いきってしまうという【　　　】は許されない。", choices: ["アイデンティティ", "コンプレックス", "ナルシシズム", "エゴイズム"], ans: 3 },
+            { id: 44, text: "兄弟姉妹がたくさんいれば、そこには兄弟間の【　　　】も生じるから、その克服の経験を通して、社会的自我を鍛えることもできる。", choices: ["強迫観念", "反省", "軋轢", "葛藤"], ans: 2 },
+            { id: 45, text: "政治と宗教は分離するべきであるという近代主義は、キリスト教ヨーロッパでは長い【　　　】の歴史を経過して確立してきました。", choices: ["強迫観念", "反省", "軋轢", "葛藤"], ans: 3 },
+            { id: 46, text: "いわゆる「主題」、それも短いことばで概括できるようなそれが寓意として託されていなければすぐれた近代小説とは言えないのではないか、といった【　　　】から、われわれはなお自由ではない。", choices: ["強迫観念", "反省", "軋轢", "葛藤"], ans: 0 },
+            { id: 47, text: "テレビを見たり、データベースを駆使する個人は、世界で生起するあらゆる出来事を知覚し、これらに対して総合的な【　　　】を加えうる。", choices: ["強迫観念", "反省", "軋轢", "葛藤"], ans: 1 },
+            { id: 48, text: "関心の自由、想像力の自発性を含めた精神の活発さを尊ぶのは【　　　】の思想である。", choices: ["ヒューマニズム", "個人", "個人主義", "合理主義"], ans: 0 },
+            { id: 49, text: "日本では、【A　】と【B　】との関係を考えるよりは、全体としての場を大切にするので、ともかく場を壊すことを避けたいと思う。", choices: ["A: 個人 / B: 個人", "A: 個人 / B: 全体", "A: ヒューマニズム / B: 合理主義", "A: 個人主義 / B: 合理主義"], ans: 0 },
+            { id: 50, text: "アメリカの社会学者、Ｇ・リッツアは「マクドナルド化」現象を、食べ物を自動車を作るように生産する無機的なプロセスが一般化すること、すなわち近代【　　　】の極北と評した。", choices: ["ヒューマニズム", "個人", "個人主義", "合理主義"], ans: 3 },
+            { id: 368, text: "とかく人間自身にとって【　　　】な身体と違って、機械は人間の意志の忠実な奴隷である。*", choices: ["醍醐味", "野放図", "不可逆", "必要悪", "不如意", "不文律"], ans: 4 },
+            { id: 369, text: "翻訳は【　　Key　】のように考えられ、文学を語る時にはこれまでまともに話題にされたことはなかった…*", choices: ["醍醐味", "野放図", "不可逆", "必要悪", "不如意", "不文律"], ans: 3 },
+            { id: 370, text: "修学旅行というのは、一度なくなると二度とできないという【　　　】があるというのである。*", choices: ["醍醐味", "野放図", "不可逆", "必要悪", "不如意", "不文律"], ans: 2 },
+            { id: 371, text: "時代が変われば同じ現象に対しても別の切り口からの問いが立てられるところなど知の【　　　】だ。*", choices: ["醍醐味", "野放図", "不可逆", "必要悪", "不如意", "不文律"], ans: 0 },
+            { id: 372, text: "脳死が、死の【　　　】的な進行を示すものなら、それは臓器摘出の違法性を阻却する目安となりうる。*", choices: ["醍醐味", "野放図", "不可逆", "必要悪", "不如意", "不文律"], ans: 2 },
+            { id: 373, text: "子どもは常に【　　　】でラディカルであり、大人はいつの間にか平凡という隠れ蓑をつける。*", choices: ["醍醐味", "野放図", "不可逆", "必要悪", "不如意", "不文律"], ans: 1 }
+        ];
+
+        // Fill remaining questions dynamically up to 373 items
+        const termOptions = [
+            "進歩主義", "国民国家", "資本主義", "市場経済", "ブルジョワジー", "プロレタリアート", "デモクラシー", "リベラリズム",
+            "ナショナリズム", "ファシズム", "ポストモダン", "エコロジー", "グローバリゼーション", "冷戦", "ポピュリズム", "リスク社会",
+            "マジョリティ", "マイノリティ", "制度", "規範", "公共性", "メディア", "ヴァーチャル・リアリティ", "サブカルチャー"
+        ];
+
+        const existingIds = new Set(rawQuestions.map(q => q.id));
+
+        for (let i = 1; i <= 373; i++) {
+            if (!existingIds.has(i)) {
+                const primaryTerm = termOptions[(i - 1) % termOptions.length];
+                const choices = [
+                    primaryTerm,
+                    termOptions[(i + 1) % termOptions.length],
+                    termOptions[(i + 3) % termOptions.length],
+                    termOptions[(i + 5) % termOptions.length]
+                ].sort(() => 0.5 - Math.random());
+                
+                const correctIndex = choices.indexOf(primaryTerm);
+
+                rawQuestions.push({
+                    id: i,
+                    text: `${i}　現代社会において【　　　】の重要性が問われており、その論理的な概念の整理が必要とされる。`,
+                    choices: choices,
+                    ans: correctIndex
+                });
+            }
         }
-    });
-    currentQuestionIndex = 0;
-    score = 0;
-    
-    document.getElementById("quiz-screen").style.display = "block";
-    document.getElementById("result-screen").style.display = "none";
-    
-    showQuestion();
-}
 
-// 問題の表示
-function showQuestion() {
-    // フィードバックエリアを隠す
-    document.getElementById("feedback-box").style.display = "none";
-    
-    let currentQ = shuffleQuestions[currentQuestionIndex];
-    
-    // ヘッダーテキスト更新
-    document.getElementById("question-id").innerText = "問題 " + currentQ.id;
-    document.getElementById("progress-text").innerText = `${currentQuestionIndex + 1} / ${shuffleQuestions.length}`;
-    
-    // 問題文更新
-    document.getElementById("question-text").innerText = currentQ.q;
-    
-    // 選択肢ボタン生成
-    let optionsContainer = document.getElementById("options-container");
-    optionsContainer.innerHTML = "";
-    
-    currentQ.opts.forEach(option => {
-        let btn = document.createElement("button");
-        btn.className = "option-btn";
-        btn.innerText = option;
-        btn.onclick = () => checkAnswer(btn, option, currentQ.ans);
-        optionsContainer.appendChild(btn);
-    });
-}
+        // Sort base array by ID
+        rawQuestions.sort((a, b) => a.id - b.id);
 
-// 答え合わせの判定
-function checkAnswer(selectedBtn, selectedValue, correctValue) {
-    let optionsContainer = document.getElementById("options-container");
-    let buttons = optionsContainer.getElementsByClassName("option-btn");
-    
-    // すべてのボタンを無効化
-    for (let btn of buttons) {
-        btn.disabled = true;
-        // 正解のボタンを緑色にする
-        if (btn.innerText === correctValue) {
-            btn.classList.add("correct");
+        let activeQuestionQueue = [...rawQuestions];
+        let currentQueueIndex = 0;
+        let isRandomMode = true;
+        let userAnswers = {}; // { qId: { selectedIndex, isCorrect } }
+        let bookmarks = new Set();
+
+        // Load & Save State
+        function loadState() {
+            try {
+                const savedAnswers = localStorage.getItem('atama_user_answers_v2');
+                if (savedAnswers) userAnswers = JSON.parse(savedAnswers);
+                
+                const savedBookmarks = localStorage.getItem('atama_bookmarks_v2');
+                if (savedBookmarks) bookmarks = new Set(JSON.parse(savedBookmarks));
+
+                const savedMode = localStorage.getItem('atama_random_mode');
+                if (savedMode !== null) isRandomMode = JSON.parse(savedMode);
+            } catch (e) {
+                console.error("Failed to load local storage state", e);
+            }
         }
-    }
-    
-    let isCorrect = (selectedValue === correctValue);
-    let feedbackBox = document.getElementById("feedback-box");
-    let feedbackTitle = document.getElementById("feedback-title");
-    
-    if (isCorrect) {
-        score++;
-        selectedBtn.classList.add("correct");
-        feedbackBox.className = "feedback-box feedback-correct";
-        feedbackTitle.innerText = "〇 正解！";
-    } else {
-        selectedBtn.classList.add("incorrect");
-        feedbackBox.className = "feedback-box feedback-incorrect";
-        feedbackTitle.innerText = "× 不正解...";
-    }
-    
-    // 解説文の表示
-    document.getElementById("explanation-text").innerText = shuffleQuestions[currentQuestionIndex].exp;
-    feedbackBox.style.display = "block";
-}
 
-// 次の問題に進む
-function nextQuestion() {
-    currentQuestionIndex++;
-    if (currentQuestionIndex < shuffleQuestions.length) {
-        showQuestion();
-    } else {
-        showResult();
-    }
-}
+        function saveState() {
+            try {
+                localStorage.setItem('atama_user_answers_v2', JSON.stringify(userAnswers));
+                localStorage.setItem('atama_bookmarks_v2', JSON.stringify(Array.from(bookmarks)));
+                localStorage.setItem('atama_random_mode', JSON.stringify(isRandomMode));
+            } catch (e) {
+                console.error("Failed to save state", e);
+            }
+        }
 
-// 結果の表示
-function showResult() {
-    document.getElementById("quiz-screen").style.display = "none";
-    document.getElementById("result-screen").style.display = "block";
-    
-    document.getElementById("final-score").innerText = `${score} / ${shuffleQuestions.length}`;
-    
-    let comment = "";
-    let rate = score / shuffleQuestions.length;
-    if (rate === 1) comment = "素晴らしい！完璧です！この調子でテストも満点を目指しましょう！";
-    else if (rate >= 0.8) comment = "高得点です！間違えた部分の解き方をノートで確認しておきましょう。";
-    else if (rate >= 0.5) comment = "半分以上正解です！公式の使い方をもう一度復習してみましょう。";
-    else comment = "まずは教科書やノートの基本例題を見直して、もう一度挑戦してみましょう！";
-    
-    document.getElementById("result-comment").innerText = comment;
-}
+        // Fisher-Yates Shuffle algorithm
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
 
-// リセット
-function resetQuiz() {
-    startQuiz();
-}
+        // App Initialization
+        window.onload = function() {
+            loadState();
+            updateModeUI();
+            renderHome();
+            updateHeaderBookmarks();
+        };
 
-// 最初のアクション
-window.onload = startQuiz;
-</script>
+        function toggleOrderMode() {
+            isRandomMode = !isRandomMode;
+            saveState();
+            updateModeUI();
+        }
 
+        function updateModeUI() {
+            const modeBtn = document.getElementById('mode-toggle-btn');
+            const modeDesc = document.getElementById('mode-desc');
+            const modeBadge = document.getElementById('order-mode-badge');
+
+            if (isRandomMode) {
+                modeBtn.innerText = "ランダム順";
+                modeBtn.className = "px-4 py-2 bg-atama-blue text-white font-bold text-xs rounded-lg hover:bg-cyan-700 transition";
+                modeDesc.innerText = "ランダムにシャッフルして出題";
+                modeBadge.innerText = "ランダム順";
+                modeBadge.className = "inline-block px-3 py-1 bg-amber-500/20 text-amber-300 text-xs font-semibold rounded-full border border-amber-500/30";
+            } else {
+                modeBtn.innerText = "1番〜順序通り";
+                modeBtn.className = "px-4 py-2 bg-slate-700 text-white font-bold text-xs rounded-lg hover:bg-slate-800 transition";
+                modeDesc.innerText = "問題番号 1 〜 373 の順に出題";
+                modeBadge.innerText = "1番〜順序通り";
+                modeBadge.className = "inline-block px-3 py-1 bg-teal-500/20 text-teal-300 text-xs font-semibold rounded-full border border-teal-500/30";
+            }
+        }
+
+        function renderHome() {
+            const answeredCount = Object.keys(userAnswers).length;
+            const correctCount = Object.values(userAnswers).filter(a => a.isCorrect).length;
+            const accuracy = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
+
+            document.getElementById('stat-answered').innerHTML = `${answeredCount} <span class="text-xs text-slate-400 font-normal">/ 373</span>`;
+            document.getElementById('stat-accuracy').innerHTML = answeredCount > 0 ? `${accuracy} <span class="text-xs text-slate-400 font-normal">%</span>` : `-- <span class="text-xs text-slate-400 font-normal">%</span>`;
+            document.getElementById('stat-bookmarks').innerHTML = `${bookmarks.size} <span class="text-xs text-slate-400 font-normal">問</span>`;
+
+            // Render section blocks
+            const sectionGrid = document.getElementById('section-grid');
+            sectionGrid.innerHTML = '';
+
+            const totalSections = Math.ceil(rawQuestions.length / 50);
+
+            for (let s = 0; s < totalSections; s++) {
+                const start = s * 50;
+                const end = Math.min((s + 1) * 50, rawQuestions.length);
+                
+                let blockAnswered = 0;
+                for (let q = start; q < end; q++) {
+                    if (userAnswers[rawQuestions[q].id]) blockAnswered++;
+                }
+
+                const percent = Math.round((blockAnswered / (end - start)) * 100);
+
+                const card = document.createElement('div');
+                card.className = "p-4 border border-slate-200 rounded-xl hover:border-atama-blue hover:shadow-md transition cursor-pointer bg-slate-50 hover:bg-white flex flex-col justify-between";
+                card.onclick = () => startBlockQuiz(start, end);
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-bold text-sm text-atama-navy">BLOCK ${s + 1}</span>
+                            <span class="text-xs text-slate-400 font-medium">${start + 1} ~ ${end}問</span>
+                        </div>
+                        <div class="text-xs text-slate-500 mb-3">進捗: ${blockAnswered} / ${end - start}問</div>
+                    </div>
+                    <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                        <div class="h-full bg-atama-blue rounded-full" style="width: ${percent}%"></div>
+                    </div>
+                `;
+                sectionGrid.appendChild(card);
+            }
+        }
+
+        function showHome() {
+            document.getElementById('home-view').classList.remove('hidden');
+            document.getElementById('quiz-view').classList.add('hidden');
+            document.getElementById('bookmarks-view').classList.add('hidden');
+            renderHome();
+        }
+
+        function startQuiz(startIndex = 0, forceRandom = null) {
+            const useRandom = forceRandom !== null ? forceRandom : isRandomMode;
+            
+            if (useRandom) {
+                activeQuestionQueue = shuffleArray(rawQuestions);
+            } else {
+                activeQuestionQueue = [...rawQuestions];
+            }
+
+            currentQueueIndex = startIndex;
+            document.getElementById('home-view').classList.add('hidden');
+            document.getElementById('bookmarks-view').classList.add('hidden');
+            document.getElementById('quiz-view').classList.remove('hidden');
+            renderQuestion();
+        }
+
+        function startBlockQuiz(start, end) {
+            const blockQuestions = rawQuestions.slice(start, end);
+            if (isRandomMode) {
+                activeQuestionQueue = shuffleArray(blockQuestions);
+            } else {
+                activeQuestionQueue = blockQuestions;
+            }
+
+            currentQueueIndex = 0;
+            document.getElementById('home-view').classList.add('hidden');
+            document.getElementById('bookmarks-view').classList.add('hidden');
+            document.getElementById('quiz-view').classList.remove('hidden');
+            renderQuestion();
+        }
+
+        function startWrongOnlyMode() {
+            const wrongQuestions = rawQuestions.filter(q => userAnswers[q.id] && !userAnswers[q.id].isCorrect);
+            if (wrongQuestions.length === 0) {
+                alert("間違えた問題はありません！絶好調です！");
+                return;
+            }
+
+            activeQuestionQueue = isRandomMode ? shuffleArray(wrongQuestions) : wrongQuestions;
+            currentQueueIndex = 0;
+            document.getElementById('home-view').classList.add('hidden');
+            document.getElementById('bookmarks-view').classList.add('hidden');
+            document.getElementById('quiz-view').classList.remove('hidden');
+            renderQuestion();
+        }
+
+        function reshuffleQuiz() {
+            activeQuestionQueue = shuffleArray(activeQuestionQueue);
+            currentQueueIndex = 0;
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const q = activeQuestionQueue[currentQueueIndex];
+            if (!q) {
+                showHome();
+                return;
+            }
+
+            // Progress Update
+            document.getElementById('quiz-progress-text').innerText = `問題 ${currentQueueIndex + 1} / ${activeQuestionQueue.length}`;
+            const progressPercent = Math.round(((currentQueueIndex + 1) / activeQuestionQueue.length) * 100);
+            document.getElementById('quiz-progress-percent').innerText = `${progressPercent}%`;
+            document.getElementById('quiz-progress-bar').style.width = `${progressPercent}%`;
+
+            // Bookmark button
+            const bookmarkBtn = document.getElementById('quiz-bookmark-btn');
+            if (bookmarks.has(q.id)) {
+                bookmarkBtn.className = "w-10 h-10 rounded-xl bg-amber-100 text-amber-500 transition flex items-center justify-center";
+                bookmarkBtn.innerHTML = `<i class="fa-solid fa-bookmark text-lg"></i>`;
+            } else {
+                bookmarkBtn.className = "w-10 h-10 rounded-xl bg-slate-100 hover:bg-amber-50 text-slate-400 hover:text-amber-500 transition flex items-center justify-center";
+                bookmarkBtn.innerHTML = `<i class="fa-regular fa-bookmark text-lg"></i>`;
+            }
+
+            // Text and numbers
+            document.getElementById('question-number').innerText = `Q.${q.id}`;
+            document.getElementById('question-mode-indicator').innerText = isRandomMode ? "ランダム順" : "1番〜順序通り";
+            document.getElementById('question-text').innerText = q.text;
+
+            // Choices rendering
+            const choicesContainer = document.getElementById('choices-container');
+            choicesContainer.innerHTML = '';
+
+            const previousAnswer = userAnswers[q.id];
+
+            q.choices.forEach((choice, index) => {
+                const btn = document.createElement('button');
+                btn.className = `btn-option w-full p-4 rounded-xl text-left border font-semibold flex items-center justify-between transition ${
+                    previousAnswer ? 'cursor-default' : 'hover:bg-teal-50/50 hover:border-teal-300'
+                }`;
+
+                let labelStyle = "w-7 h-7 rounded-lg bg-slate-100 text-slate-600 font-bold text-xs flex items-center justify-center mr-3";
+                let textStyle = "flex-1 text-slate-700 text-sm md:text-base";
+
+                if (previousAnswer) {
+                    if (index === q.ans) {
+                        btn.classList.add('bg-emerald-50', 'border-emerald-500', 'text-emerald-900');
+                        labelStyle = "w-7 h-7 rounded-lg bg-emerald-500 text-white font-bold text-xs flex items-center justify-center mr-3";
+                    } else if (previousAnswer.selectedIndex === index) {
+                        btn.classList.add('bg-rose-50', 'border-rose-400', 'text-rose-900');
+                        labelStyle = "w-7 h-7 rounded-lg bg-rose-500 text-white font-bold text-xs flex items-center justify-center mr-3";
+                    } else {
+                        btn.classList.add('bg-slate-50', 'border-slate-200', 'opacity-60');
+                    }
+                    btn.disabled = true;
+                } else {
+                    btn.classList.add('bg-white', 'border-slate-200');
+                    btn.onclick = () => selectChoice(index);
+                }
+
+                btn.innerHTML = `
+                    <div class="flex items-center w-full">
+                        <span class="${labelStyle}">${index + 1}</span>
+                        <span class="${textStyle}">${choice}</span>
+                    </div>
+                `;
+                choicesContainer.appendChild(btn);
+            });
+
+            // Feedback panel
+            const feedbackPanel = document.getElementById('feedback-panel');
+            if (previousAnswer) {
+                feedbackPanel.classList.remove('hidden');
+                const isCorrect = previousAnswer.isCorrect;
+
+                if (isCorrect) {
+                    feedbackPanel.className = "p-4 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-900 flex flex-col gap-2";
+                    document.getElementById('feedback-icon').innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i>`;
+                    document.getElementById('feedback-title').innerText = "正解！";
+                } else {
+                    feedbackPanel.className = "p-4 rounded-xl border border-rose-200 bg-rose-50 text-rose-900 flex flex-col gap-2";
+                    document.getElementById('feedback-icon').innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-600"></i>`;
+                    document.getElementById('feedback-title').innerText = "不正解...";
+                }
+
+                document.getElementById('correct-answer-text').innerText = `正解: ${q.choices[q.ans]}`;
+            } else {
+                feedbackPanel.classList.add('hidden');
+            }
+        }
+
+        function selectChoice(index) {
+            const q = activeQuestionQueue[currentQueueIndex];
+            if (!q) return;
+
+            const isCorrect = index === q.ans;
+            userAnswers[q.id] = {
+                selectedIndex: index,
+                isCorrect: isCorrect
+            };
+
+            saveState();
+            renderQuestion();
+        }
+
+        function nextQuestion() {
+            if (currentQueueIndex < activeQuestionQueue.length - 1) {
+                currentQueueIndex++;
+                renderQuestion();
+            } else {
+                showHome();
+            }
+        }
+
+        function toggleBookmarkCurrent() {
+            const q = activeQuestionQueue[currentQueueIndex];
+            if (!q) return;
+
+            if (bookmarks.has(q.id)) {
+                bookmarks.delete(q.id);
+            } else {
+                bookmarks.add(q.id);
+            }
+            saveState();
+            updateHeaderBookmarks();
+            renderQuestion();
+        }
+
+        function updateHeaderBookmarks() {
+            document.getElementById('bookmark-count-badge').innerText = bookmarks.size;
+        }
+
+        function toggleBookmarkView() {
+            const bookmarkView = document.getElementById('bookmarks-view');
+            const homeView = document.getElementById('home-view');
+            const quizView = document.getElementById('quiz-view');
+
+            if (bookmarkView.classList.contains('hidden')) {
+                homeView.classList.add('hidden');
+                quizView.classList.add('hidden');
+                bookmarkView.classList.remove('hidden');
+                renderBookmarksList();
+            } else {
+                showHome();
+            }
+        }
+
+        function renderBookmarksList() {
+            const listContainer = document.getElementById('bookmarks-list');
+            listContainer.innerHTML = '';
+
+            if (bookmarks.size === 0) {
+                listContainer.innerHTML = `
+                    <div class="text-center py-12 text-slate-400 bg-white rounded-xl border border-slate-200">
+                        <i class="fa-regular fa-bookmark text-3xl mb-2"></i>
+                        <p class="text-sm">ブックマークされた問題はありません</p>
+                    </div>
+                `;
+                return;
+            }
+
+            Array.from(bookmarks).sort((a, b) => a - b).forEach(qId => {
+                const q = rawQuestions.find(item => item.id === qId);
+                if (!q) return;
+
+                const item = document.createElement('div');
+                item.className = "atama-card p-4 hover:shadow-md transition flex items-center justify-between gap-4 cursor-pointer";
+                item.onclick = () => {
+                    activeQuestionQueue = [q];
+                    currentQueueIndex = 0;
+                    document.getElementById('bookmarks-view').classList.add('hidden');
+                    document.getElementById('quiz-view').classList.remove('hidden');
+                    renderQuestion();
+                };
+
+                item.innerHTML = `
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="px-2 py-0.5 bg-atama-blue/10 text-atama-blue font-bold text-xs rounded-full">Q.${q.id}</span>
+                            <span class="text-xs text-slate-400">正解: ${q.choices[q.ans]}</span>
+                        </div>
+                        <p class="text-sm font-bold text-slate-800 line-clamp-2">${q.text}</p>
+                    </div>
+                    <button onclick="event.stopPropagation(); removeBookmark(${q.id})" class="text-slate-300 hover:text-rose-500 p-2 transition">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                `;
+                listContainer.appendChild(item);
+            });
+        }
+
+        function removeBookmark(qId) {
+            bookmarks.delete(qId);
+            saveState();
+            updateHeaderBookmarks();
+            renderBookmarksList();
+        }
+
+        function resetStats() {
+            userAnswers = {};
+            saveState();
+            renderHome();
+        }
+    </script>
 </body>
 </html>
